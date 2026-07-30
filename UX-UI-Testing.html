@@ -353,6 +353,8 @@ code.inline{background:#1a1b1e;border:1px solid var(--divider);padding:2px 6px;b
 /* team card (embed variant) */
 .team-card{border-left-color:var(--green)}
 .team-card:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.03),var(--glow-green)}
+.team-card.pink{border-left-color:var(--pink)}
+.team-card.pink:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.03),var(--glow-pink)}
 .roster{margin-top:12px}
 .roster .rlabel{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}
 .roster .rlabel .cur{color:var(--text-strong);font-weight:700}
@@ -385,8 +387,11 @@ code.inline{background:#1a1b1e;border:1px solid var(--divider);padding:2px 6px;b
 .btn-brand:hover{background:var(--brand-hover);transform:translateY(-1px);box-shadow:0 4px 14px -2px rgba(var(--brand-rgb),.6)}
 .btn-sec{background:var(--bg-input);color:var(--text)}
 .btn-sec:hover{background:var(--bg-active);transform:translateY(-1px)}
-.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--divider)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--divider);font-size:13px;padding:8px 13px}
 .btn-ghost:hover{color:var(--text);border-color:var(--text-muted);transform:translateY(-1px)}
+.btn-ghost.warn:hover{color:var(--red);border-color:var(--red)}
+.btn-ghost.demo{border-style:dashed;opacity:.8;font-size:12px}
+.btn-ghost.demo:hover{color:var(--yellow);border-color:var(--yellow);opacity:1}
 .btn.joined{background:rgba(var(--green-rgb),.14);color:var(--green);cursor:default;box-shadow:none}
 .btn.joined:hover{background:rgba(var(--green-rgb),.14);transform:none}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important}
@@ -658,7 +663,8 @@ code.inline{background:#1a1b1e;border:1px solid var(--divider);padding:2px 6px;b
         <div style="flex:1">
           <label>Giờ bắt đầu</label>
           <select id="teamTime">
-            <option>06:00</option><option>07:00</option><option selected>17:00</option>
+            <option>06:00</option><option>07:00</option><option>08:00</option>
+            <option>15:00</option><option>16:00</option><option selected>17:00</option>
             <option>18:00</option><option>19:00</option><option>20:00</option>
           </select>
         </div>
@@ -878,8 +884,17 @@ let TEAMS = [
     host:"Hà Lan", hostKey:"lan",
     day:"Thứ 7", time:"06:00", level:"Vui là chính",
     field:"Sân trường VinUni", verified:false,
-    cap:8, members:["Hà Lan","Phạm Văn Ngoan"],
+    cap:3, members:["Hà Lan","Phạm Văn Ngoan"],
     memberKeys:["lan","ngoan"]
+  },
+  {
+    id:"t4", sport:"Bóng đá", emoji:"⚽",
+    name:"Đá giao lưu cuối tuần K4",
+    host:ME.name, hostKey:"me",
+    day:"Thứ 7", time:"15:00", level:"Trung bình",
+    field:"Sân trường VinUni", verified:false,
+    cap:10, members:[ME.name,"Vũ Thành Dương","Nguyễn Thành Vinh"],
+    memberKeys:["me","duong","vinh"]
   },
 ];
 
@@ -955,17 +970,22 @@ function channelIntro(id){
       <div class="chip" data-fill="/tienich chỗ lấy nước"><span class="k">/tienich</span> chỗ lấy nước</div>
       <div class="chip" data-send="Sân bóng mở tới mấy giờ vậy?">Sân bóng mở tới mấy giờ?</div>
       <div class="chip" data-send="Thư viện mở cửa khi nào?">Thư viện mở khi nào?</div>
+      <div class="chip" data-send="cng tin co lo v song k?" title="Ví dụ gõ sai chính tả — trợ lý sẽ đoán và hỏi lại thay vì khẳng định bừa">cng tin co lo v song k?</div>
+      <div class="chip" data-send="Lịch xe bus của trường chạy giờ nào vậy?" title="Ví dụ hỏi thứ không có trong tài liệu">Lịch xe bus chạy giờ nào?</div>
     </div>`;
   } else if(id==="lap-nhom"){
     hints = `<div class="hint">
       <div class="chip g" data-fill="/timnhom bóng đá"><span class="k">/timnhom</span> bóng đá</div>
       <div class="chip" data-send="Mình muốn đá bóng chiều thứ 7, trình độ vui là chính">Mình muốn đá bóng chiều thứ 7</div>
       <div class="chip g" data-fill="/lapnhom"><span class="k">/lapnhom</span> tạo thẻ nhóm mới</div>
+      <div class="chip" data-send="Mai đá bóng không mọi người?" title="Ví dụ rủ mơ hồ — trợ lý sẽ hỏi lại giờ và sân trước khi gợi ý">Mai đá bóng không?</div>
+      <div class="chip g" data-fill="/hoi hiện có team đá banh nào lịch gần nhất không? add mình vào luôn nhé" title="Trợ lý tìm kèo gần nhất và xin xác nhận trước khi add bạn vào"><span class="k">/hoi</span> team đá banh gần nhất?</div>
     </div>`;
   } else if(id==="hoi-dap"){
     hints = `<div class="hint">
       <div class="chip" data-send="Máy in ở đâu và in như thế nào?">Máy in ở đâu?</div>
       <div class="chip" data-send="Wifi trường đăng nhập sao?">Wifi đăng nhập sao?</div>
+      <div class="chip" data-send="Giải giúp mình bài tập Python số 3 với" title="Ví dụ ngoài phạm vi — trợ lý sẽ từ chối khéo và hướng dẫn hỏi Mentor/TA">Giải giúp bài tập Python?</div>
     </div>`;
   }
   return `<div class="chan-intro">
@@ -1066,12 +1086,17 @@ function renderReactions(rs){
   return `<div class="reactions">${rs.map(r=>`<div class="reaction">${r.e}<span class="cnt">${r.n}</span></div>`).join("")}</div>`;
 }
 
-/* team card as a special embed */
-function renderTeamEmbed(t){
+/* team card as a special embed — `opts.confirm` renders it as an agent-proposed
+   confirmation card (nearest-match flow); host-only edit/cancel/expire controls
+   only show for teams ME organized. */
+function renderTeamEmbed(t, opts){
+  opts = opts || {};
+  const confirmMode = !!opts.confirm;
   const filled = t.members.length;
   const pct = Math.min(100, Math.round(filled/t.cap*100));
   const isFull = filled>=t.cap;
   const joined = t.members.includes(ME.name);
+  const isHost = t.hostKey==="me";
   const stack = t.memberKeys.slice(0,5).map((k,i)=>{
     const a = k==="me"?{init:ME.init,bg:ME.grad}:(AVATARS[k]||{init:"?",bg:"#555"});
     return `<div class="a" style="background:${a.bg}">${a.init}</div>`;
@@ -1080,16 +1105,41 @@ function renderTeamEmbed(t){
   const badge = t.verified
     ? `<span class="verified">✔ Sân đã xác minh</span>`
     : `<span class="unverified">⚠ Sân chưa xác minh</span>`;
-  let btn;
-  if(joined) btn = `<button class="btn joined" disabled>✔ Đã tham gia</button>`;
-  else if(isFull) btn = `<button class="btn btn-sec" disabled>Đã đủ người</button>`;
-  else btn = `<button class="btn btn-green" data-join="${t.id}">Tham gia (+1)</button>`;
 
-  return `<div class="embed team-card ${isFull?"":""}" data-team="${t.id}">
+  let btn;
+  if(joined){
+    btn = isHost
+      ? `<button class="btn joined" disabled>✔ Bạn là chủ nhóm</button>`
+      : `<button class="btn btn-sec" data-leave="${t.id}">Rời nhóm</button>`;
+  } else if(isFull){
+    btn = `<button class="btn btn-sec" disabled>Đã đủ người</button>`;
+  } else {
+    btn = confirmMode
+      ? `<button class="btn btn-brand" data-join="${t.id}">✅ Xác nhận tham gia</button>`
+      : `<button class="btn btn-green" data-join="${t.id}">Tham gia (+1)</button>`;
+  }
+
+  let hostControls = "";
+  if(isHost && !confirmMode){
+    hostControls = `<button class="btn btn-ghost" data-edit="${t.id}">✏️ Sửa thông tin</button><button class="btn btn-ghost warn" data-cancelmatch="${t.id}">🗑 Huỷ trận</button>`;
+    if(!isFull){
+      hostControls += `<button class="btn btn-ghost demo" data-expire="${t.id}" title="Demo: mô phỏng khi quá giờ hẹn mà chưa đủ người">⏱ Mô phỏng hết giờ</button>`;
+    }
+  }
+
+  const providerLabel = confirmMode
+    ? `🤖 Đề xuất gần lịch nhất · ${t.emoji} ${t.sport} · tổ chức bởi <b style="color:var(--text)">${esc(t.host)}</b>`
+    : `${t.emoji} ${t.sport} · tổ chức bởi <b style="color:var(--text)">${esc(t.host)}</b>`;
+  const whenField = confirmMode && opts.whenLabel
+    ? `<div class="field full"><div class="fn">Lịch gần nhất</div><div class="fv"><b>${opts.whenLabel}</b></div></div>`
+    : "";
+
+  return `<div class="embed team-card ${confirmMode?"pink":""}" data-team="${t.id}">
     <div class="embed-main">
-      <div class="provider">${t.emoji} ${t.sport} · tổ chức bởi <b style="color:var(--text)">${esc(t.host)}</b></div>
+      <div class="provider">${providerLabel}</div>
       <div class="e-title">${esc(t.name)}</div>
       <div class="fields">
+        ${whenField}
         <div class="field"><div class="fn">Thời gian</div><div class="fv"><b>${t.day}, ${t.time}</b></div></div>
         <div class="field"><div class="fn">Trình độ</div><div class="fv">${t.level}</div></div>
         <div class="field"><div class="fn">Sân</div><div class="fv">${esc(t.field)}</div></div>
@@ -1103,6 +1153,7 @@ function renderTeamEmbed(t){
     </div>
     <div class="card-actions">
       ${btn}
+      ${hostControls}
       <button class="btn btn-ghost" data-roster="${t.id}">Xem danh sách</button>
     </div>
   </div>`;
@@ -1135,6 +1186,14 @@ function bindMessageActions(){
   });
   messagesEl.querySelectorAll("[data-join]").forEach(b=>b.onclick=()=>joinTeam(b.dataset.join));
   messagesEl.querySelectorAll("[data-roster]").forEach(b=>b.onclick=()=>showRoster(b.dataset.roster));
+  messagesEl.querySelectorAll("[data-leave]").forEach(b=>b.onclick=()=>leaveTeam(b.dataset.leave));
+  messagesEl.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openTeamModal(b.dataset.edit));
+  messagesEl.querySelectorAll("[data-cancelmatch]").forEach(b=>b.onclick=()=>cancelMatch(b.dataset.cancelmatch));
+  messagesEl.querySelectorAll("[data-expire]").forEach(b=>b.onclick=()=>simulateExpire(b.dataset.expire));
+  messagesEl.querySelectorAll("[data-confirmguess]").forEach(b=>b.onclick=()=>{
+    const idx = parseInt(b.dataset.confirmguess);
+    botSay(currentChannel,{embed:kbToEmbed(KB[idx])}, 300);
+  });
 }
 
 /* ============================================================
@@ -1163,6 +1222,45 @@ function findKB(q){
     if(score>bestScore){bestScore=score; best=item;}
   });
   return bestScore>0 ? best : null;
+}
+
+/* ============================================================
+   FUZZY / MISSPELLED MATCHING (spec §5 case 4)
+   "cng tin co lo v song k?" has no clean substring match — instead
+   of hallucinating an answer, the assistant guesses at low confidence
+   and asks the user to confirm rather than stating it outright (G10).
+   ============================================================ */
+function stripVN(s){
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/[^a-z0-9]/g,"");
+}
+function lcsRatio(query, key){
+  const q = stripVN(query), k = stripVN(key);
+  if(!k.length) return 0;
+  const dp = new Array(k.length+1).fill(0);
+  for(let i=1;i<=q.length;i++){
+    let prev = 0;
+    for(let j=1;j<=k.length;j++){
+      const tmp = dp[j];
+      dp[j] = q[i-1]===k[j-1] ? prev+1 : Math.max(dp[j], dp[j-1]);
+      prev = tmp;
+    }
+  }
+  return dp[k.length]/k.length;
+}
+function findKBFuzzy(q){
+  // fuzzy guessing is only for short/garbled input ("cng tin co lo v song k?");
+  // a full well-formed sentence just has no matching topic and should say so,
+  // not get subsequence-matched into a random unrelated KB entry.
+  if(stripVN(q).length > 24) return null;
+  let best=null, bestScore=0;
+  KB.forEach(item=>{
+    item.keys.forEach(k=>{
+      if(stripVN(k).length < 6) return; // short keys ("sân","thẻ"...) trivially subsequence-match anything
+      const r = lcsRatio(q, k);
+      if(r>bestScore){ bestScore=r; best=item; }
+    });
+  });
+  return bestScore>=0.72 ? {item:best, score:bestScore} : null;
 }
 
 function kbToEmbed(item){
@@ -1201,6 +1299,72 @@ function parseSport(q){
   if(/khá|phong trào/.test(s)) level="Khá / phong trào";
   return {day,time,level};
 }
+/* does the raw text carry an exact clock time? ("17h", "17:00", "5 giờ") */
+function hasExplicitHour(q){
+  return /\d{1,2}\s*[:h]\s*\d{0,2}/i.test(q) || /\d{1,2}\s*giờ/.test(q);
+}
+
+/* ============================================================
+   DATE/TIME RESOLUTION — turns loose day labels into real dates
+   so clarifying questions and "nearest match" ranking feel real.
+   ============================================================ */
+const WEEKDAY_MAP = {"Chủ nhật":0,"Thứ 2":1,"Thứ 3":2,"Thứ 4":3,"Thứ 5":4,"Thứ 6":5,"Thứ 7":6};
+const VN_WEEKDAY = ["Chủ nhật","Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7"];
+function resolveDayToDate(label){
+  const d = new Date();
+  if(label==="Ngày mai") d.setDate(d.getDate()+1);
+  else if(label!=="Hôm nay" && label in WEEKDAY_MAP){
+    const target = WEEKDAY_MAP[label];
+    let diff = (target - d.getDay() + 7) % 7;
+    if(diff===0) diff = 7;
+    d.setDate(d.getDate()+diff);
+  }
+  return d;
+}
+function fmtDDMM(d){ return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`; }
+function resolveTeamDateTime(t){
+  const d = resolveDayToDate(t.day);
+  const [h,m] = (t.time||"00:00").split(":").map(Number);
+  d.setHours(h, m||0, 0, 0);
+  return d;
+}
+function fmtRelative(d){
+  const diffH = Math.round((d-new Date())/3600000);
+  const rel = diffH<=0 ? "sắp diễn ra" : diffH<24 ? `còn khoảng ${diffH} giờ nữa` : `còn khoảng ${Math.round(diffH/24)} ngày nữa`;
+  return `${rel} · ${VN_WEEKDAY[d.getDay()]}, ${fmtDDMM(d)} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+
+/* ============================================================
+   AMBIGUOUS SPORTS REQUEST → CLARIFY (spec §5 case 3, §6 low-confidence)
+   "mai đá bóng không?" / "chiều đá bóng" must not silently guess —
+   the assistant narrows scope by asking, then proceeds on the reply.
+   ============================================================ */
+let pendingSportClarify = null; // {channel, raw}
+
+function routeSportIntent(ch, text){
+  if(hasExplicitHour(text)){ pendingSportClarify=null; suggestTeams(ch, text); return; }
+  askSportClarify(ch, text);
+}
+
+function askSportClarify(ch, text){
+  pendingSportClarify = {channel:ch, raw:text};
+  const {day, time} = parseSport(text);
+  let q;
+  if(day){
+    q = `<b>${day}</b> là ngày <b>${fmtDDMM(resolveDayToDate(day))}</b> — bạn muốn đá lúc <b>mấy giờ</b> và ở <b>sân nào</b> để mình lên lịch giúp?`;
+  } else if(time){
+    q = `Bạn muốn đá lúc <b>mấy giờ</b> (cụ thể) để mình tạo kèo giúp nhé?`;
+  } else {
+    q = `Bạn muốn đá <b>ngày nào, giờ nào</b>, và ở <b>sân nào</b> để mình lên lịch giúp?`;
+  }
+  botSay(ch,{text:q},650);
+}
+
+function handleSportClarifyReply(ch, replyText){
+  const merged = pendingSportClarify.raw + " " + replyText;
+  pendingSportClarify = null;
+  suggestTeams(ch, merged);
+}
 
 /* suggest up to 3 teams matching request */
 function suggestTeams(ch, q){
@@ -1215,6 +1379,11 @@ function suggestTeams(ch, q){
   showTyping(true);
   setTimeout(()=>{
     showTyping(false);
+    if(!picks.length){
+      pushMsg(ch,{author:"VinUni Assistant", authorKey:"bot", isBot:true,
+        text:`Hiện mình chưa thấy kèo bóng đá nào còn chỗ trống cả 😅. Bạn tạo nhóm mới để mọi người ghép theo bạn luôn nhé?`, actionRow:"create"});
+      return;
+    }
     const dayTxt = day?` khung <b>${day}</b>`:"";
     pushMsg(ch,{
       author:"VinUni Assistant", authorKey:"bot", isBot:true,
@@ -1231,23 +1400,57 @@ function suggestTeams(ch, q){
   }, 900);
 }
 
-/* override renderEmbed for team placeholder */
+/* ============================================================
+   NEAREST-MATCH + CONFIRM-BEFORE-JOIN (explicit ask):
+   "/hoi có team đá banh nào lịch gần nhất không?" — the assistant
+   finds a candidate, shows a confirmation card, and ONLY joins the
+   user after they explicitly click "Xác nhận tham gia" (G8 — user
+   keeps control, AI never auto-commits them to a real-world plan).
+   ============================================================ */
+function suggestNearestTeamForConfirm(ch, q){
+  const open = TEAMS.filter(t=>t.members.length<t.cap);
+  showTyping(true);
+  setTimeout(()=>{
+    showTyping(false);
+    if(!open.length){
+      pushMsg(ch,{author:"VinUni Assistant", authorKey:"bot", isBot:true,
+        text:`Hiện mình chưa thấy kèo bóng đá nào còn chỗ trống gần đây cả 😅. Bạn muốn mình mở form tạo nhóm mới không?`, actionRow:"create"});
+      return;
+    }
+    const nearest = open.map(t=>({t, when:resolveTeamDateTime(t)})).sort((a,b)=>a.when-b.when)[0];
+    pushMsg(ch,{
+      author:"VinUni Assistant", authorKey:"bot", isBot:true,
+      text:`Mình tìm thấy kèo bóng đá <b>gần lịch nhất</b> đang còn chỗ 👇 Trước khi thêm bạn vào, bạn xác nhận lại thông tin nhé — mình chỉ add khi bạn bấm <b>Xác nhận tham gia</b> thôi, chưa bấm là chưa vào nhóm.`
+    });
+    setTimeout(()=>{
+      pushMsg(ch,{author:"VinUni Assistant", authorKey:"bot", isBot:true,
+        embed:{__team:nearest.t.id, confirm:true, whenLabel:fmtRelative(nearest.when)}});
+    }, 260);
+  }, 900);
+}
+
+/* override renderEmbed for team placeholder (browse card / confirm card / cancelled) */
 const _renderEmbed = renderEmbed;
 renderEmbed = function(e){
   if(e && e.__team){
     const t = TEAMS.find(x=>x.id===e.__team);
-    if(t) return renderTeamEmbed(t);
+    if(t) return renderTeamEmbed(t, {confirm:e.confirm, whenLabel:e.whenLabel});
+    return `<div class="embed" style="opacity:.55"><div class="embed-main"><div class="e-title">Trận này đã bị huỷ</div><div class="e-desc">Người tổ chức đã đóng kèo này, bạn xem các nhóm khác nhé.</div></div></div>`;
   }
   return _renderEmbed(e);
 };
 
-/* action row (create team button) — patch into renderMsg via reactions area */
+/* action rows — patch into renderMsg via reactions area */
 const _renderMsg = renderMsg;
 renderMsg = function(m, grouped){
   let html = _renderMsg(m, grouped);
   if(m.actionRow==="create"){
     html = html.replace('</div>\n    <div class="toolbar">',
       `<div class="card-actions" style="margin-top:8px"><button class="btn btn-green" id="inlineCreate">➕ Tạo nhóm mới</button><button class="btn btn-ghost" data-fill="/timnhom bóng đá">Xem tất cả nhóm</button></div></div>\n    <div class="toolbar">`);
+  }
+  if(m.actionRow==="confirmGuess"){
+    html = html.replace('</div>\n    <div class="toolbar">',
+      `<div class="card-actions" style="margin-top:8px"><button class="btn btn-brand" data-confirmguess="${m.guessId}">✅ Đúng, đây rồi</button><button class="btn btn-ghost" data-fill="">✏️ Để mình gõ lại</button></div></div>\n    <div class="toolbar">`);
   }
   return html;
 };
@@ -1257,18 +1460,25 @@ renderMsg = function(m, grouped){
    ============================================================ */
 function handleCommand(raw){
   const ch = currentChannel;
+  pendingSportClarify = null; // a slash command means the user moved on from any pending clarify
   const parts = raw.slice(1).trim().split(/\s+/);
   const cmd = parts[0].toLowerCase();
   const arg = parts.slice(1).join(" ");
 
-  if(cmd==="tienich" || cmd==="hoi"){
+  if(cmd==="tienich"){
     if(!arg){ botSay(ch,{text:"Bạn muốn hỏi về tiện ích gì? VD: <code class='inline'>/tienich lò vi sóng</code>, <code class='inline'>/tienich chỗ lấy nước</code>."},500); return; }
     answerUtility(ch, arg);
+  } else if(cmd==="hoi"){
+    if(!arg){ botSay(ch,{text:"Bạn muốn hỏi gì nào? VD: <code class='inline'>/hoi thư viện mở mấy giờ</code>, hoặc <code class='inline'>/hoi có team đá banh nào lịch gần nhất không?</code>"},500); return; }
+    if(isSportIntent(arg) && /gần nhất|sớm nhất|gần đây/i.test(arg)){ suggestNearestTeamForConfirm(ch, arg); return; }
+    if(isSportIntent(arg)){ routeSportIntent(ch, arg); return; }
+    answerUtility(ch, arg);
   } else if(cmd==="timnhom"){
+    pendingSportClarify = null;
     suggestTeams(ch, arg||"bóng đá");
   } else if(cmd==="lapnhom"){
     botSay(ch,{text:"Mở biểu mẫu tạo thẻ nhóm cho bạn nhé 👇"},400);
-    setTimeout(openTeamModal, 500);
+    setTimeout(()=>openTeamModal(), 500);
   } else if(cmd==="lich"){
     const item = KB.find(k=>k.keys.includes("sân"));
     botSay(ch,{text:"Khung giờ mở của sân thể thao:", embed:kbToEmbed(item)});
@@ -1279,13 +1489,60 @@ function handleCommand(raw){
 
 function answerUtility(ch, q){
   const item = findKB(q);
-  if(item){
-    botSay(ch,{embed:kbToEmbed(item)});
-  } else {
+  if(item){ botSay(ch,{embed:kbToEmbed(item)}); return; }
+
+  const fuzzy = findKBFuzzy(q);
+  if(fuzzy){
+    const idx = KB.indexOf(fuzzy.item);
     botSay(ch,{
-      text:`Mình chưa tìm thấy tài liệu nội bộ khớp với "<b>${esc(q)}</b>". <span class="unverified">⚠ Chưa xác minh</span> — mình không đoán bừa. Bạn thử từ khóa cụ thể hơn (lò vi sóng, nước, sân bóng, thư viện, thẻ SV...) hoặc hỏi Phòng CTSV nhé.`
+      text:`Mình không chắc lắm vì câu hỏi hơi khó đọc 🤔 — bạn đang hỏi về <b>${fuzzy.item.icon} ${fuzzy.item.title}</b> đúng không?`,
+      actionRow:"confirmGuess", guessId: idx
     });
+    return;
   }
+
+  botSay(ch,{
+    text:`Mình chưa tìm thấy tài liệu nội bộ khớp với "<b>${esc(q)}</b>". <span class="unverified">⚠ Chưa xác minh</span> — mình không đoán bừa, sợ nói sai. Bạn gõ lại rõ hơn hoặc hỏi trực tiếp TA/Phòng CTSV giúp mình nhé. Gợi ý từ khoá: lò vi sóng, chỗ lấy nước, sân bóng/cầu lông, thư viện, thẻ SV, wifi, máy in, canteen, gửi xe.`
+  });
+}
+
+/* ============================================================
+   OUT-OF-SCOPE GUARDS (spec §5 case 5 & 6, §6 out-of-scope path)
+   ============================================================ */
+const OOS_ACADEMIC = ["giải bài","giải giúp bài","bài tập","làm hộ","làm giúp bài","code giúp","viết code giúp","fix code","debug giúp","viết báo cáo giúp","làm đồ án","giải thích thuật toán","chấm bài","viết luận giúp"];
+const OOS_ADMIN = ["ban tài khoản","ban nick","kick khỏi server","xoá tài khoản","xóa tài khoản","khoá tài khoản","khóa tài khoản","xoá quyền","xóa quyền","đuổi khỏi server","xoá server","xóa server","cấm bạn"];
+function isAcademicOOS(q){ const s=q.toLowerCase(); return OOS_ACADEMIC.some(w=>s.includes(w)); }
+function isAdminOOS(q){ const s=q.toLowerCase(); return OOS_ADMIN.some(w=>s.includes(w)); }
+function refuseAcademic(ch){
+  botSay(ch,{text:`Mình chỉ hỗ trợ tra cứu tiện ích campus và lập nhóm thể thao thôi 🙏 — câu hỏi bài tập/học thuật bạn nhắn Mentor hoặc TA giúp mình nhé.`});
+}
+function refuseAdmin(ch){
+  botSay(ch,{text:`Mình không có quyền thực hiện thao tác với tài khoản người khác đâu nhé. Bạn cần hỗ trợ về thành viên thì liên hệ Mod hoặc Phòng CTSV giúp mình.`});
+}
+
+/* ============================================================
+   TIME CORRECTION FOR OWN MATCH (spec §6 correction path)
+   "chốt 5h chiều... rồi đổi sang 6h đi" — updates the event in place.
+   ============================================================ */
+let lastMyTeamId = null;
+function tryApplyTimeCorrection(ch, text){
+  if(!lastMyTeamId) return false;
+  const t = TEAMS.find(x=>x.id===lastMyTeamId && x.hostKey==="me");
+  if(!t) return false;
+  const m = text.match(/(đổi|chuyển|sửa|update)\b[\s\S]*?sang\s*(\d{1,2})\s*[:h]?\s*(\d{2})?/i);
+  if(!m) return false;
+  const hh = String(parseInt(m[2],10)).padStart(2,"0");
+  const mm = m[3] || "00";
+  const newTime = `${hh}:${mm}`;
+  if(newTime===t.time) return false;
+  const oldTime = t.time;
+  t.time = newTime;
+  renderMessages();
+  botSay(ch,{
+    text:`Đã cập nhật giờ trận <b>${esc(t.name)}</b>: ${oldTime} → <b>${newTime}</b>. Mình nhắc luôn mọi người trong nhóm nhé!`,
+    embed:{__team:t.id}
+  }, 500);
+  return true;
 }
 
 /* ============================================================
@@ -1305,9 +1562,23 @@ function sendUserMessage(text){
     return;
   }
 
+  // ③ out-of-scope guards — checked before anything else
+  if(isAcademicOOS(text)){ refuseAcademic(ch); return; }
+  if(isAdminOOS(text)){ refuseAdmin(ch); return; }
+
+  // correction: user adjusting the time of a match they just created
+  if(tryApplyTimeCorrection(ch, text)) return;
+
+  // continuing a clarifying question the bot just asked?
+  if(pendingSportClarify && pendingSportClarify.channel===ch){
+    handleSportClarifyReply(ch, text);
+    return;
+  }
+
   // sports intent?
   if(isSportIntent(text) && (ch==="lap-nhom" || ch==="hoi-dap" || ch==="chung")){
-    suggestTeams(ch, text);
+    if(/gần nhất|sớm nhất|gần đây/i.test(text)) suggestNearestTeamForConfirm(ch, text);
+    else routeSportIntent(ch, text);
     return;
   }
 
@@ -1318,11 +1589,9 @@ function sendUserMessage(text){
     return;
   }
 
-  // generic
+  // generic — fuzzy/low-confidence handling lives inside answerUtility now
   if(ch==="tra-cuu" || ch==="hoi-dap"){
-    botSay(ch,{
-      text:`Mình chưa có tài liệu chắc chắn cho câu này nên không dám khẳng định. <span class="unverified">⚠ Chưa xác minh</span>. Thử hỏi cụ thể về: lò vi sóng, chỗ lấy nước, sân bóng/cầu lông, thư viện, thẻ SV, wifi, máy in, canteen, gửi xe.`
-    });
+    answerUtility(ch, text);
   }
 }
 
@@ -1414,6 +1683,55 @@ function joinTeam(id){
   }, 600);
 }
 
+/* spec §5 case 8: someone leaves a match that was already full — the
+   assistant re-opens it and pings for a replacement instead of just
+   quietly shrinking the roster. */
+function leaveTeam(id){
+  const t = TEAMS.find(x=>x.id===id);
+  if(!t) return;
+  const idx = t.members.indexOf(ME.name);
+  if(idx===-1) return;
+  const wasFull = t.members.length >= t.cap;
+  t.members.splice(idx,1);
+  const mkIdx = t.memberKeys.indexOf("me");
+  if(mkIdx>-1) t.memberKeys.splice(mkIdx,1);
+  renderMessages();
+  toast(`Bạn đã rời "${t.name}"`, "warn");
+  if(wasFull){
+    botSay(currentChannel,{
+      text:`⚠️ <b>${esc(t.name)}</b> vừa thiếu lại <b>1 chỗ</b> vì có người huỷ phút chót — kèo đang mở lại. Ai vào thay không? 👇`,
+      embed:{__team:t.id}
+    }, 500);
+  } else {
+    botSay(currentChannel,{ text:`Đã cập nhật, <b>${esc(t.name)}</b> còn <b>${t.cap-t.members.length}</b> chỗ trống.`}, 400);
+  }
+}
+
+/* spec §5 case 7: host cancels a match immediately, no confirmation dance needed */
+function cancelMatch(id){
+  const t = TEAMS.find(x=>x.id===id);
+  if(!t) return;
+  TEAMS = TEAMS.filter(x=>x.id!==id);
+  renderMessages();
+  botSay(currentChannel,{text:`🗑 <b>${esc(t.name)}</b> đã được người tổ chức huỷ. Xin lỗi các bạn đã đăng ký — hẹn kèo khác nhé!`}, 400);
+  toast(`Đã huỷ trận "${t.name}"`, "warn");
+}
+
+/* spec §6 case ④: quá giờ hẹn mà chưa đủ người → tự động huỷ.
+   No real clock runs in this mock, so the host can trigger it manually
+   to demo the behavior — clearly labeled as a demo-only affordance. */
+function simulateExpire(id){
+  const t = TEAMS.find(x=>x.id===id);
+  if(!t) return;
+  if(t.members.length>=t.cap){ toast("Kèo đã đủ người rồi, không cần mô phỏng nữa 🙂"); return; }
+  TEAMS = TEAMS.filter(x=>x.id!==id);
+  renderMessages();
+  botSay(currentChannel,{
+    text:`⏰ Đã quá giờ hẹn (<b>${t.day}, ${t.time}</b>) mà <b>${esc(t.name)}</b> vẫn chưa đủ người (${t.members.length}/${t.cap}). <b style="color:var(--red)">Kèo không đủ người, tự động huỷ bỏ.</b>`
+  }, 500);
+  toast(`Đã tự động huỷ "${t.name}" vì thiếu người`, "warn");
+}
+
 function showRoster(id){
   const t = TEAMS.find(x=>x.id===id);
   if(!t) return;
@@ -1426,8 +1744,41 @@ function showRoster(id){
 
 /* modal */
 const teamModal = document.getElementById("teamModal");
-function openTeamModal(){ teamModal.classList.add("show"); }
-function closeTeamModal(){ teamModal.classList.remove("show"); }
+let editingTeamId = null;
+function setSeg(segId, value){
+  const seg=document.getElementById(segId);
+  seg.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.v===value));
+}
+/* spec §5 case 7: pass a team id to reopen the same form pre-filled for editing */
+function openTeamModal(editId){
+  editingTeamId = editId || null;
+  const head = teamModal.querySelector(".modal-head h3");
+  const sub = teamModal.querySelector(".modal-head p");
+  const submitBtn = document.getElementById("submitTeam");
+  if(editingTeamId){
+    const t = TEAMS.find(x=>x.id===editingTeamId);
+    if(!t){ editingTeamId=null; return; }
+    head.textContent = "Sửa thông tin trận";
+    sub.innerHTML = `Cập nhật lại và trợ lý sẽ báo ngay cho mọi người trong <span class="kbd">#lập-nhóm-thể-thao</span>.`;
+    submitBtn.textContent = "Lưu thay đổi";
+    setSeg("segSport", t.sport); setSeg("segLevel", t.level);
+    document.getElementById("teamName").value = t.name;
+    document.getElementById("teamDay").value = t.day;
+    document.getElementById("teamTime").value = t.time;
+    document.getElementById("teamCap").value = t.cap;
+    document.getElementById("teamField").value = t.field;
+    document.getElementById("teamVerified").checked = t.verified;
+  } else {
+    head.textContent = "Tạo thẻ nhóm thể thao";
+    sub.innerHTML = `Trợ lý sẽ đăng thẻ nhóm vào <span class="kbd">#lập-nhóm-thể-thao</span> để mọi người ghép.`;
+    submitBtn.textContent = "Đăng thẻ nhóm";
+    document.getElementById("teamName").value="";
+    document.getElementById("teamVerified").checked=false;
+    setSeg("segSport","Bóng đá"); setSeg("segLevel","Vui là chính");
+  }
+  teamModal.classList.add("show");
+}
+function closeTeamModal(){ teamModal.classList.remove("show"); editingTeamId = null; }
 document.getElementById("closeTeam").onclick=closeTeamModal;
 document.getElementById("cancelTeam").onclick=closeTeamModal;
 teamModal.onclick=e=>{ if(e.target===teamModal) closeTeamModal(); };
@@ -1449,19 +1800,41 @@ document.getElementById("submitTeam").onclick=()=>{
   const name = document.getElementById("teamName").value.trim();
   if(!name){ toast("Nhập tên/mô tả nhóm giúp mình nhé","warn"); document.getElementById("teamName").focus(); return; }
   const sport=segVal("segSport");
+  const day=document.getElementById("teamDay").value;
+  const time=document.getElementById("teamTime").value;
+  const level=segVal("segLevel");
+  const field=document.getElementById("teamField").value.trim()||"Sân trường VinUni";
+  const verified=document.getElementById("teamVerified").checked;
+  const cap=parseInt(document.getElementById("teamCap").value);
+
+  if(editingTeamId){
+    const t = TEAMS.find(x=>x.id===editingTeamId);
+    if(!t){ closeTeamModal(); return; }
+    const oldDay=t.day, oldTime=t.time;
+    Object.assign(t,{sport, emoji:SPORT_EMOJI[sport]||t.emoji, name, day, time, level, field, verified, cap});
+    closeTeamModal();
+    if(currentChannel!=="lap-nhom"){ switchChannel("lap-nhom"); }
+    const timeChanged = (oldDay!==day || oldTime!==time);
+    pushMsg("lap-nhom",{author:ME.name, authorKey:"me", text:`Mình vừa sửa lại thông tin trận <b>${esc(name)}</b>.`});
+    botSay("lap-nhom",{
+      text: timeChanged
+        ? `✏️ Đã cập nhật <b>${esc(name)}</b>: ${oldDay}, ${oldTime} → <b>${day}, ${time}</b>. Mọi người trong nhóm nhớ note lại giờ mới nhé!`
+        : `✏️ Đã lưu thay đổi cho <b>${esc(name)}</b>.`,
+      embed:{__team:t.id}
+    }, 600);
+    toast("Đã cập nhật thông tin trận","green");
+    return;
+  }
+
   const t = {
     id:"t"+(TEAMS.length+1)+"_"+Date.now(),
     sport, emoji:SPORT_EMOJI[sport]||"⚽", name,
     host:ME.name, hostKey:"me",
-    day:document.getElementById("teamDay").value,
-    time:document.getElementById("teamTime").value,
-    level:segVal("segLevel"),
-    field:document.getElementById("teamField").value.trim()||"Sân trường VinUni",
-    verified:document.getElementById("teamVerified").checked,
-    cap:parseInt(document.getElementById("teamCap").value),
+    day, time, level, field, verified, cap,
     members:[ME.name], memberKeys:["me"]
   };
   TEAMS.unshift(t);
+  lastMyTeamId = t.id;
   closeTeamModal();
 
   // if not in lap-nhom channel, switch there to show the card
@@ -1472,9 +1845,6 @@ document.getElementById("submitTeam").onclick=()=>{
     embed:{__team:t.id}
   }, 650);
 
-  // reset form
-  document.getElementById("teamName").value="";
-  document.getElementById("teamVerified").checked=false;
   toast("Đã đăng thẻ nhóm vào #lập-nhóm-thể-thao","green");
 };
 
@@ -1524,6 +1894,7 @@ function renderMembers(){
 function switchChannel(id){
   if(!CHANNELS[id]) return;
   currentChannel=id;
+  pendingSportClarify = null;
   renderChannels();
   renderMessages();
   input.value=""; autoGrow(); hideSlash();
@@ -1570,6 +1941,9 @@ function seed(){
     {id:"l1",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:{__team:"t1"},t:now-2399000},
     {id:"l2",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:{__team:"t2"},t:now-2398000},
     {id:"l3",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:{__team:"t3"},t:now-2397000},
+    {id:"l3b",author:ME.name,authorKey:"me",text:"Mình vừa mở kèo cuối tuần cho anh em nhé 👇",t:now-900000},
+    {id:"l3c",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:{__team:"t4"},t:now-899000},
+    {id:"l3d",author:"Nguyễn Thành Vinh",authorKey:"vinh",text:"Ủa 15h là 3h chiều đó, chắc host gõ nhầm giờ rồi 😅 tưởng đá 5h chiều chứ",t:now-600000},
   );
   // #hoi-dap
   history["hoi-dap"].push(
