@@ -24,7 +24,7 @@ Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
   | 3. Hệ thống Email thông báo tự động | ~50 | 1 lần/ngày | Bị spam, không realtime | Có | Loại |
 - **Ứng viên ĐÃ LOẠI + vì sao:** 
   - Ứng viên 2 bị loại vì chi phí build UI/UX cao, học viên lười sang một nền tảng mới ngoài Discord họ đang dùng. 
-  - Ứng viên 3 bị loại vì email không mang tính tương tác (realtime), không giải quyết được bài toán gom nhóm đá bóng.
+  - Ứng viên 3 bị loại vì email không mang tính tương tác (realtime), không giải quyết được bài toán gom nhóm đá bóng..
 - **Ứng viên CHỌN + vì sao:** 
   - Ứng viên 1 được chọn vì học viên đã có sẵn thói quen dùng Discord. Tần suất gặp vấn đề cao, việc tích hợp bot trực tiếp giúp giảm cost chuyển đổi nền tảng và dễ dàng gọi tool AI (matchmaking).
 
