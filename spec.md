@@ -83,12 +83,12 @@ Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
 - **Chiều chất lượng + định nghĩa kiểm chứng được:**
   - **Chính xác thông tin (Tiện ích):** Pass khi câu trả lời nằm hoàn toàn trong Knowledge Base mock. Fail nếu có chi tiết ngoài lề (Hallucination).
   - **Tool Calling (Thể thao):** Pass khi LLM trích xuất đúng `activity`, `time`, `location` từ tin nhắn và gọi hàm tạo event thành công.
-- **Golden set:** (Cần tạo file trong thư mục `eval/` chứa ít nhất 20 case test bao gồm hỏi đáp đúng, hỏi ngoài luồng, hỏi thiếu thông tin, gõ sai chính tả).
+- **Golden set:** Đã tạo bộ test case trong [eval/golden_set.json](file:///c:/Users/nguye/K4-hackathon-LowTechNhat-E403/eval/golden_set.json) gồm 20 test cases phủ đầy đủ 4 lớp chỗ khó taxonomy (① Nguồn sự thật, ② Mơ hồ/chính tả, ③ Ngoài phạm vi/thẩm quyền, ④ Đặc thù domain).
 - **Quality bar:** Đạt khi ≥ 85% qua bộ test case và 0% bịa đặt thông tin (Hallucination = 0).
 - **Kết quả các lượt chạy:** 
   | Lượt | Số lượng test | Pass | Fail | Ghi chú |
   |---|---|---|---|---|
-  | Lần 1 | 20 | ... | ... | (Cập nhật sau khi test) |
+  | Lần 1 | 20 | ... | ... | (Chưa chạy — Chờ tích hợp codebase & API Key) |
 
 ## §8. Phân công & kế hoạch
 - **Phân công có tên:**
