@@ -1,0 +1,25 @@
+[
+  {
+    "id": "test_01",
+    "type": "qna",
+    "input": "Căn tin có lò vi sóng không?",
+    "expected_output_keywords": ["có", "2 lò", "tự phục vụ"]
+  },
+  {
+    "id": "test_02",
+    "type": "matchmaking",
+    "input": "Mai 5h chiều đá bóng ở sân nội khu không anh em ơi",
+    "expected_intent": {
+      "action": "create",
+      "sport": "bóng đá",
+      "time": "5h chiều mai",
+      "location": "sân nội khu"
+    }
+  },
+  {
+    "id": "test_03",
+    "type": "out_of_scope",
+    "input": "Giải giúp bài tập Python số 3 với",
+    "expected_output_keywords": ["không hỗ trợ", "bài tập", "hỏi mentor"]
+  }
+]
