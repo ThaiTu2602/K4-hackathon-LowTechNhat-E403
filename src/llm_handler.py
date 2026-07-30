@@ -3,12 +3,19 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from pathlib import Path
 
+# Import prompts và config từ file riêng (dễ tinh chỉnh)
+from prompts import SYSTEM_PROMPT_QNA, SYSTEM_PROMPT_CLASSIFY, SYSTEM_PROMPT_EXTRACT
+from tools import VALID_INTENTS
+
 # ============================================================
 # FILE: llm_handler.py
 # MỤC ĐÍCH: Chứa toàn bộ logic giao tiếp với AI (Google Gemini).
 #            Có 2 chức năng chính:
 #            1. Trả lời câu hỏi tiện ích dựa trên Knowledge Base.
 #            2. Phân loại ý định (intent) tin nhắn người dùng.
+#
+# LƯU Ý: Các system prompts được quản lý tập trung ở file prompts.py
+#          Các tool definitions & config ở file tools.py
 # ============================================================
 
 # Tìm thư mục gốc dự án (thư mục cha của src/)
@@ -34,20 +41,6 @@ def load_knowledge_base():
 # CHỨC NĂNG 1: TRẢ LỜI CÂU HỎI TIỆN ÍCH (Q&A)
 # ============================================================
 
-SYSTEM_PROMPT_QNA = """Bạn là trợ lý AI thân thiện của VinUni, hỗ trợ học viên về thông tin tiện ích nội khu và thể thao.
-
-QUY TẮC BẮT BUỘC:
-1. CHỈ trả lời dựa trên thông tin trong phần "DỮ LIỆU" bên dưới. TUYỆT ĐỐI không bịa đặt thêm thông tin ngoài dữ liệu.
-2. Nếu câu hỏi KHÔNG có đáp án trong dữ liệu, hãy trả lời: "Xin lỗi, mình chưa có thông tin này trong cẩm nang. Bạn có thể hỏi thêm ở kênh #hoi-mentor nhé!"
-3. Luôn trả lời bằng tiếng Việt, ngắn gọn, thân thiện, dùng emoji cho sinh động.
-4. Cuối câu trả lời, ghi nguồn: "(Theo Cẩm nang học viên VinUni)"
-5. Nếu câu hỏi liên quan đến bài tập, học thuật, hãy từ chối khéo: "Mình chỉ hỗ trợ thông tin tiện ích và thể thao thôi nha, bạn hãy hỏi Mentor nhé! 📚"
-
-DỮ LIỆU:
-{knowledge_base}
-"""
-
-
 def get_qna_answer(user_question: str) -> str:
     """
     Gửi câu hỏi của user + knowledge base cho Gemini để nhận câu trả lời.
@@ -70,19 +63,6 @@ def get_qna_answer(user_question: str) -> str:
 # CHỨC NĂNG 2: PHÂN LOẠI Ý ĐỊNH (INTENT CLASSIFICATION)
 # ============================================================
 
-SYSTEM_PROMPT_CLASSIFY = """Bạn là bộ phân loại ý định tin nhắn. Hãy đọc tin nhắn của user và phân loại vào MỘT trong các loại sau:
-
-1. "qna" - Nếu user đang HỎI THÔNG TIN tiện ích (căn tin, thư viện, thẻ từ, phòng gym, liên hệ hỗ trợ...).
-2. "create_match" - Nếu user muốn RỦ/MỞ TRẬN thể thao (đá bóng, cầu lông, v.v.), ví dụ: "ai đá bóng không", "rủ đá banh chiều nay".
-3. "list_matches" - Nếu user muốn XEM các trận đang mở, ví dụ: "có trận nào đang mở không", "xem danh sách trận".
-4. "join_match" - Nếu user muốn THAM GIA vào trận đang mở, ví dụ: "cho mình join", "mình tham gia".
-5. "other" - Nếu không thuộc các loại trên (chào hỏi, nói chuyện linh tinh, bài tập...).
-
-CHỈ trả lời DUY NHẤT 1 từ: qna, create_match, list_matches, join_match, hoặc other.
-KHÔNG giải thích gì thêm.
-"""
-
-
 def classify_intent(user_message: str) -> str:
     """
     Gửi tin nhắn user cho Gemini để phân loại ý định.
@@ -94,8 +74,7 @@ def classify_intent(user_message: str) -> str:
         )
         intent = response.text.strip().lower()
 
-        valid_intents = ["qna", "create_match", "list_matches", "join_match", "other"]
-        if intent in valid_intents:
+        if intent in VALID_INTENTS:
             return intent
         return "other"
     except Exception as e:
@@ -106,23 +85,6 @@ def classify_intent(user_message: str) -> str:
 # ============================================================
 # CHỨC NĂNG 3: TRÍCH XUẤT THÔNG TIN MỞ TRẬN (TOOL CALLING ĐƠN GIẢN)
 # ============================================================
-
-SYSTEM_PROMPT_EXTRACT = """Từ tin nhắn sau, hãy trích xuất thông tin mở trận thể thao.
-Trả về ĐÚNG theo format sau (mỗi dòng 1 trường, không giải thích thêm):
-sport: <môn thể thao>
-time: <thời gian>
-location: <địa điểm>
-
-Nếu thiếu thông tin nào, ghi "chưa rõ" cho trường đó.
-
-Ví dụ:
-Tin nhắn: "5h chiều nay đá bóng sân nội khu không anh em"
-Kết quả:
-sport: bóng đá
-time: 5h chiều nay
-location: sân nội khu
-"""
-
 
 def extract_match_info(user_message: str) -> dict:
     """
