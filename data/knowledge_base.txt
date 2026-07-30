@@ -1,7 +1,29 @@
-- Căn tin VinUni mở cửa từ 7h00 đến 19h00 hàng ngày.
-- Căn tin có trang bị 2 lò vi sóng ở khu vực tự phục vụ.
-- Thư viện mở cửa từ 8h00 đến 21h00 các ngày trong tuần. Cuối tuần đóng cửa lúc 17h00.
-- Nếu thẻ từ không vào được thư viện, vui lòng liên hệ quầy IT Support ở tầng 1 toà G.
-- Sân bóng đá mở cửa đến 22h00, cần đăng ký trước với ban quản lý sân.
-- Đồ vật thất lạc nhặt được hoặc bị mất trong khuôn viên thư viện được lưu giữ tại Bàn Lễ tân/Thủ thư ở tầng 1 toà nhà thư viện; sinh viên vui lòng nộp lại hoặc hỏi tại đây trong vòng 30 ngày.
-- Thư viện có 4 phòng học nhóm, sinh viên đăng ký qua hệ thống đặt phòng trực tuyến trên website thư viện hoặc trực tiếp tại quầy Thủ thư, tối đa 2 giờ mỗi lượt đặt.
+# === CĂN TIN (CANTEEN) ===
+- Căn tin VinUni mở cửa từ 7h00 đến 19h00 hàng ngày (cả Thứ 7 và Chủ nhật).
+- Căn tin có trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm ở góc trái gần cửa ra vào.
+- Giá cơm trưa dao động từ 25.000đ đến 45.000đ.
+- Căn tin có bán nước đóng chai, cà phê, trà sữa.
+- Khu vực ăn uống có wifi miễn phí, mật khẩu hỏi tại quầy thu ngân.
+
+# === THƯ VIỆN (LIBRARY) ===
+- Thư viện mở cửa từ 8h00 đến 21h00 các ngày trong tuần (Thứ 2 đến Thứ 6).
+- Cuối tuần (Thứ 7 và Chủ nhật) thư viện mở cửa từ 9h00 đến 17h00.
+- Cần dùng thẻ từ (thẻ học viên) để quẹt vào cửa thư viện.
+- Nếu thẻ từ không vào được thư viện, vui lòng liên hệ quầy IT Support ở tầng 1 toà G, mở cửa từ 8h00-17h00.
+- Thư viện có 3 tầng: Tầng 1 là khu vực đọc sách, Tầng 2 là phòng học nhóm, Tầng 3 là khu yên tĩnh.
+- Có thể mượn sách tối đa 5 cuốn trong 14 ngày.
+
+# === THỂ THAO (SPORTS) ===
+- Sân bóng đá nội khu mở cửa từ 6h00 đến 22h00 hàng ngày.
+- Sân cầu lông trong nhà mở cửa từ 7h00 đến 21h00 (Thứ 2 đến Thứ 6).
+- Phòng gym mở cửa từ 6h00 đến 22h00, miễn phí cho học viên có thẻ.
+- Muốn đặt sân cầu lông cần liên hệ ban quản lý qua email: sports@vinuni.edu.vn hoặc gặp trực tiếp tại phòng 102 toà B.
+- Sân bóng đá có thể chơi tự do nếu không có lịch đặt trước.
+- Số người tối thiểu để mở trận bóng đá là 10 người (chia 2 đội 5 vs 5).
+- Số người tối thiểu để mở trận cầu lông đôi là 4 người.
+
+# === LIÊN HỆ HỖ TRỢ ===
+- Hỗ trợ kỹ thuật (IT Support): Tầng 1 toà G, giờ làm việc 8h00-17h00 các ngày trong tuần.
+- Email hỗ trợ chung: support@vinuni.edu.vn
+- Số điện thoại bảo vệ (24/7): 0123-456-789.
+- Mentor/TA có thể liên hệ qua kênh Discord #hoi-mentor.

@@ -2,36 +2,294 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from pathlib import Path
 
-# Load biến môi trường từ file .env
-load_dotenv()
-TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+# Import 2 module do nhóm tự viết
+from llm_handler import classify_intent, get_qna_answer, extract_match_info
+from match_manager import MatchManager
 
-# Khởi tạo bot với prefix '/' (có thể đổi) và các quyền cần thiết
+# ============================================================
+# FILE: bot.py (FILE CHÍNH - KHỞI CHẠY BOT)
+# MỤC ĐÍCH: Lắng nghe tin nhắn từ Discord, phân loại ý định,
+#            rồi điều hướng đến đúng chức năng xử lý.
+# ============================================================
+
+# --- 1. Load cấu hình ---
+# Tìm file .env ở thư mục gốc dự án (thư mục cha của src/)
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+# --- 2. Khởi tạo Bot Discord ---
 intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix='/', intents=intents)
+intents.message_content = True  # BẮT BUỘC bật để bot đọc được nội dung tin nhắn
+bot = commands.Bot(command_prefix="!", intents=intents)
 
+# --- 3. Khởi tạo MatchManager (quản lý gom nhóm) ---
+match_manager = MatchManager()
+
+
+# ============================================================
+# SỰ KIỆN: Bot khởi động thành công
+# ============================================================
 @bot.event
 async def on_ready():
-    """Hàm chạy khi bot khởi động và kết nối thành công vào Discord."""
-    print(f'✅ Bot đã đăng nhập với tên: {bot.user}')
+    print(f"✅ Bot đã đăng nhập với tên: {bot.user}")
+    print(f"📡 Đang lắng nghe trên {len(bot.guilds)} server(s)...")
 
-@bot.command()
+
+# ============================================================
+# SỰ KIỆN: Lắng nghe MỌI tin nhắn (AI xử lý tự động)
+# ============================================================
+@bot.event
+async def on_message(message):
+    # Bỏ qua tin nhắn từ chính bot (tránh bot tự trả lời chính mình)
+    if message.author == bot.user:
+        return
+
+    # Bỏ qua tin nhắn bắt đầu bằng "!" (đó là lệnh, sẽ xử lý ở phần @bot.command)
+    if message.content.startswith("!"):
+        await bot.process_commands(message)
+        return
+
+    # ---- CHỈ xử lý khi bot được tag (@mention) ----
+    if bot.user not in message.mentions:
+        return  # Không được tag -> bỏ qua, không xử lý
+
+    # Lấy nội dung tin nhắn (bỏ phần tag bot)
+    user_text = message.content.replace(f"<@{bot.user.id}>", "").strip()
+    if not user_text:
+        await message.reply("👋 Chào bạn! Hãy hỏi mình về tiện ích VinUni hoặc rủ thể thao nhé!")
+        return
+
+    # Hiển thị trạng thái "đang gõ..." trong lúc AI xử lý
+    async with message.channel.typing():
+
+        # BƯỚC 1: Phân loại ý định tin nhắn bằng AI
+        intent = classify_intent(user_text)
+        print(f"📩 [{message.author}] {user_text} → Intent: {intent}")
+
+        # BƯỚC 2: Điều hướng đến chức năng tương ứng
+        if intent == "qna":
+            # --- LUỒNG HỎI ĐÁP TIỆN ÍCH ---
+            answer = get_qna_answer(user_text)
+            await message.reply(answer)
+
+        elif intent == "create_match":
+            # --- LUỒNG MỞ TRẬN THỂ THAO ---
+            info = extract_match_info(user_text)
+
+            # Kiểm tra thông tin còn thiếu -> hỏi lại user (Nguyên tắc G10)
+            missing = [k for k, v in info.items() if v == "chưa rõ"]
+            if missing:
+                missing_text = ", ".join(missing)
+                await message.reply(
+                    f"🤔 Mình cần thêm thông tin để mở trận nhé!\n"
+                    f"Bạn chưa nói rõ: **{missing_text}**.\n"
+                    f"Ví dụ: `!mo-tran bóng đá 17h sân nội khu`"
+                )
+                return
+
+            # Đủ thông tin -> Tạo trận
+            match_id = match_manager.create_match(
+                sport=info["sport"],
+                time=info["time"],
+                location=info["location"],
+                creator_name=message.author.display_name,
+                creator_id=message.author.id,
+            )
+            embed = match_manager.create_match_embed(match_id)
+            sent_msg = await message.channel.send(embed=embed)
+            match_manager.active_matches[match_id]["message_id"] = sent_msg.id
+
+        elif intent == "list_matches":
+            # --- LUỒNG XEM DANH SÁCH TRẬN ---
+            embed = match_manager.create_list_embed()
+            await message.reply(embed=embed)
+
+        elif intent == "join_match":
+            # --- LUỒNG THAM GIA TRẬN ---
+            matches = match_manager.get_active_matches()
+            if not matches:
+                await message.reply("Hiện tại chưa có trận nào đang mở. Hãy mở trận mới nhé!")
+            elif len(matches) == 1:
+                # Nếu chỉ có 1 trận -> tự động join luôn
+                mid = matches[0]["id"]
+                success, msg = match_manager.join_match(mid, message.author.id, message.author.display_name)
+                await message.reply(msg)
+                if success:
+                    embed = match_manager.create_match_embed(mid)
+                    await message.channel.send(embed=embed)
+                    # Kiểm tra đủ người -> thông báo
+                    if match_manager.is_match_full(mid):
+                        creator_id = match_manager.active_matches[mid]["creator_id"]
+                        await message.channel.send(
+                            f"🎉 <@{creator_id}> ơi, đã đủ người rồi! Bạn có muốn **chốt kèo** không?"
+                        )
+            else:
+                await message.reply(
+                    "Hiện có nhiều trận đang mở. Gõ `!xem-tran` để xem danh sách, "
+                    "rồi gõ `!join <ID trận>` để tham gia nhé!"
+                )
+
+        else:
+            # --- Ý ĐỊNH KHÁC (chào hỏi, nói chuyện...) ---
+            await message.reply(
+                "👋 Chào bạn! Mình là trợ lý VinUni.\n"
+                "🔹 Hỏi thông tin tiện ích: cứ tag mình và hỏi\n"
+                "🔹 Mở trận thể thao: `!mo-tran <môn> <giờ> <sân>`\n"
+                "🔹 Xem trận đang mở: `!xem-tran`\n"
+                "🔹 Tham gia trận: `!join <ID trận>`"
+            )
+
+
+# ============================================================
+# CÁC LỆNH THỦ CÔNG (COMMANDS) - Dùng prefix "!"
+# ============================================================
+
+@bot.command(name="ping")
 async def ping(ctx):
-    """Lệnh test bot đơn giản."""
-    await ctx.send('Pong! 🏓 Bot đang hoạt động tốt.')
+    """Lệnh test xem bot có online không."""
+    await ctx.send("🏓 Pong! Bot đang hoạt động tốt.")
 
-# TODO (Thành viên 1): Viết thêm hàm on_message để lắng nghe mọi tin nhắn và gọi LLM xử lý
-# @bot.event
-# async def on_message(message):
-#     if message.author == bot.user:
-#         return
-#     # Xử lý logic tại đây...
-#     await bot.process_commands(message) # Đảm bảo các lệnh @bot.command vẫn chạy
 
-if __name__ == '__main__':
+@bot.command(name="mo-tran")
+async def mo_tran(ctx, sport: str = None, time: str = None, location: str = None):
+    """
+    Mở trận thể thao mới.
+    Cách dùng: !mo-tran <môn> <giờ> <địa điểm>
+    Ví dụ: !mo-tran bóng-đá 17h sân-nội-khu
+    """
+    if not sport or not time or not location:
+        await ctx.send(
+            "⚠️ Thiếu thông tin! Cách dùng:\n"
+            "`!mo-tran <môn> <giờ> <địa điểm>`\n"
+            "Ví dụ: `!mo-tran bóng-đá 17h sân-nội-khu`"
+        )
+        return
+
+    # Thay dấu gạch ngang bằng khoảng trắng cho đẹp
+    sport = sport.replace("-", " ")
+    location = location.replace("-", " ")
+
+    match_id = match_manager.create_match(
+        sport=sport,
+        time=time,
+        location=location,
+        creator_name=ctx.author.display_name,
+        creator_id=ctx.author.id,
+    )
+    embed = match_manager.create_match_embed(match_id)
+    sent_msg = await ctx.send(embed=embed)
+    match_manager.active_matches[match_id]["message_id"] = sent_msg.id
+
+
+@bot.command(name="join")
+async def join(ctx, match_id: str = None):
+    """
+    Tham gia trận đang mở.
+    Cách dùng: !join <ID trận>
+    """
+    if not match_id:
+        await ctx.send("⚠️ Cách dùng: `!join <ID trận>`. Gõ `!xem-tran` để xem ID.")
+        return
+
+    success, msg = match_manager.join_match(match_id, ctx.author.id, ctx.author.display_name)
+    await ctx.send(msg)
+
+    if success:
+        # Gửi lại embed cập nhật danh sách
+        embed = match_manager.create_match_embed(match_id)
+        await ctx.send(embed=embed)
+
+        # Kiểm tra đã đủ người -> ping người tạo
+        if match_manager.is_match_full(match_id):
+            creator_id = match_manager.active_matches[match_id]["creator_id"]
+            await ctx.send(
+                f"🎉 <@{creator_id}> ơi, trận đã **đủ người**! Bạn có muốn chốt kèo không?"
+            )
+
+
+@bot.command(name="xem-tran")
+async def xem_tran(ctx):
+    """Xem danh sách tất cả các trận đang mở."""
+    embed = match_manager.create_list_embed()
+    await ctx.send(embed=embed)
+
+
+@bot.command(name="roi-tran")
+async def roi_tran(ctx, match_id: str = None):
+    """Rời khỏi trận đang tham gia."""
+    if not match_id:
+        await ctx.send("⚠️ Cách dùng: `!roi-tran <ID trận>`")
+        return
+    success, msg = match_manager.leave_match(match_id, ctx.author.id)
+    await ctx.send(msg)
+
+
+@bot.command(name="huy-tran")
+async def huy_tran(ctx, match_id: str = None):
+    """Huỷ trận (chỉ người tạo mới được huỷ)."""
+    if not match_id:
+        await ctx.send("⚠️ Cách dùng: `!huy-tran <ID trận>`")
+        return
+    success, msg = match_manager.cancel_match(match_id, ctx.author.id)
+    await ctx.send(msg)
+
+
+@bot.command(name="help-bot")
+async def help_bot(ctx):
+    """Hiển thị hướng dẫn sử dụng bot."""
+    embed = discord.Embed(
+        title="📖 Hướng dẫn sử dụng VinUni Bot",
+        description="Mình là trợ lý AI hỗ trợ thông tin tiện ích và gom nhóm thể thao!",
+        color=discord.Color.teal(),
+    )
+    embed.add_field(
+        name="💬 Hỏi đáp tiện ích",
+        value="Tag mình và hỏi, ví dụ:\n`@bot Thư viện mấy giờ đóng cửa?`",
+        inline=False,
+    )
+    embed.add_field(
+        name="⚽ Mở trận thể thao",
+        value="`!mo-tran bóng-đá 17h sân-nội-khu`",
+        inline=False,
+    )
+    embed.add_field(
+        name="📋 Xem trận đang mở",
+        value="`!xem-tran`",
+        inline=False,
+    )
+    embed.add_field(
+        name="✅ Tham gia trận",
+        value="`!join <ID trận>`",
+        inline=False,
+    )
+    embed.add_field(
+        name="👋 Rời trận",
+        value="`!roi-tran <ID trận>`",
+        inline=False,
+    )
+    embed.add_field(
+        name="🗑️ Huỷ trận (chủ trận)",
+        value="`!huy-tran <ID trận>`",
+        inline=False,
+    )
+    embed.add_field(
+        name="🏓 Test bot",
+        value="`!ping`",
+        inline=False,
+    )
+    await ctx.send(embed=embed)
+
+
+# ============================================================
+# KHỞI CHẠY BOT
+# ============================================================
+if __name__ == "__main__":
     if TOKEN:
+        print("🚀 Đang khởi động bot...")
         bot.run(TOKEN)
     else:
         print("❌ Lỗi: Chưa tìm thấy DISCORD_BOT_TOKEN trong file .env")
+        print("   Hãy copy file .env.example thành .env và điền token vào.")
