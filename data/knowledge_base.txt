@@ -13,6 +13,8 @@
 - Nếu thẻ từ không vào được thư viện, vui lòng liên hệ quầy IT Support ở tầng 1 toà G, mở cửa từ 8h00-17h00.
 - Thư viện có 3 tầng: Tầng 1 là khu vực đọc sách, Tầng 2 là phòng học nhóm, Tầng 3 là khu yên tĩnh.
 - Có thể mượn sách tối đa 5 cuốn trong 14 ngày.
+- Đồ thất lạc nhặt được hoặc bị mất trong thư viện: nộp/hỏi tại Bàn Lễ tân (quầy Thủ thư) ở tầng 1, trong vòng 30 ngày.
+- Đăng ký phòng học nhóm (tầng 2): đặt qua hệ thống đặt phòng trực tuyến trên website thư viện, hoặc trực tiếp tại Bàn Lễ tân, tối đa 2 giờ mỗi lượt.
 
 # === PHÒNG HỌC 24/7 (24/7 STUDY ROOMS) ===
 - Vị trí các phòng học 24/7: Phòng A101 (Tầng 1 Tòa A) và Phòng D102 (Tầng 1 Tòa D1).
@@ -67,8 +69,9 @@
   + Từ Tòa A đi Tòa B: Đi thẳng theo trục ngang về phía Đông (sang bên phải), đi qua Tòa C ở giữa là tới Tòa B.
   + Từ Tòa A đi Tòa G (Thư viện / IT Support): Đi xuống phía Nam (hướng Tòa D1) rồi rẽ sang phải (phía Đông) vào Tòa G nằm ở vị trí trung tâm.
   + Từ Cụm Học thuật (Tòa A, B, C, G) đi Khu thể thao (Tòa L, M): Đi ngược về phía Bắc. Tòa L (Sân bóng đá) nằm bên trái, Tòa M (Sân cầu lông/Gym) nằm bên phải.
-  + Từ Cổng chính (Cổng Đại Lộ) đến Thư viện (Tòa G): Đi thẳng qua Quảng trường trung tâm về phía Bắc, Tòa G là tòa đầu tiên ở cụm trung tâm.
+  + Từ Cổng chính (Cổng Đại Lộ) đến Thư viện (Tòa G): Đi thẳng qua Quảng trường trung tâm về hướng Bắc, Tòa G là tòa đầu tiên ở cụm trung tâm.
   + Từ Bãi giữ xe đi các Tòa học thuật: Bãi giữ xe nằm ở phía Tây, ngay sát bên cạnh Tòa A và Tòa D1.
+  + Tòa A và Tòa C nằm cạnh nhau: Tòa A ở ngay phía Tây của Tòa C, đi bộ giữa 2 toà chỉ mất khoảng 2-3 phút.
 
 # === SƠ ĐỒ ĐỒ THỊ DI CHUYỂN GIỮA CÁC TÒA (MERMAID GRAPH) ===
 ```mermaid
