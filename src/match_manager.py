@@ -1,27 +1,77 @@
 import discord
 import uuid
+import json
 from datetime import datetime
+from pathlib import Path
+
+# Import config từ file tools.py (tập trung cấu hình)
+from tools import DEFAULT_SLOTS, SPORT_EMOJI_MAP, DEFAULT_SPORT_STYLE
 
 # ============================================================
 # FILE: match_manager.py
 # MỤC ĐÍCH: Quản lý trạng thái các trận đấu thể thao (gom nhóm).
 #            - Tạo trận mới, cho người join, huỷ trận.
 #            - Tạo tin nhắn Embed đẹp trên Discord để hiển thị bảng trận.
+#            - Dữ liệu được lưu trữ vào file JSON (persist qua restart).
 # ============================================================
-
-# Số người mặc định để đủ 1 trận theo từng môn
-DEFAULT_SLOTS = {
-    "bóng đá": 10,
-    "cầu lông": 4,
-    "bóng rổ": 6,
-}
 
 
 class MatchManager:
-    def __init__(self):
+    def __init__(self, data_path: str = None):
+        """
+        Khởi tạo MatchManager.
+        Args:
+            data_path: Đường dẫn tới file JSON lưu trữ dữ liệu trận đấu.
+                       Nếu không truyền, mặc định là data/matches.json ở thư mục gốc dự án.
+        """
+        if data_path is None:
+            base_dir = Path(__file__).resolve().parent.parent
+            data_path = base_dir / "data" / "matches.json"
+        self.data_path = Path(data_path)
+
         # Lưu trữ các trận đấu đang mở.
         # Key: match_id (str), Value: dict chứa thông tin trận.
         self.active_matches: dict = {}
+
+        # Load dữ liệu từ file JSON (nếu có)
+        self._load()
+
+    # ----- LOAD / SAVE JSON -----
+    def _load(self):
+        """Đọc dữ liệu trận đấu từ file JSON. Nếu file chưa tồn tại → dict rỗng."""
+        if self.data_path.exists():
+            try:
+                with open(self.data_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                # JSON key luôn là string, nhưng players dict dùng user_id (int) làm key.
+                # Cần convert lại int key cho players.
+                for match_id, match in data.items():
+                    match["players"] = {int(k): v for k, v in match["players"].items()}
+                    match["creator_id"] = int(match["creator_id"])
+                    if match.get("message_id") is not None:
+                        match["message_id"] = int(match["message_id"])
+                self.active_matches = data
+                print(f"📂 Đã load {len(data)} trận đấu từ {self.data_path}")
+            except (json.JSONDecodeError, KeyError) as e:
+                print(f"⚠️ Lỗi đọc file {self.data_path}: {e}. Bắt đầu với dữ liệu rỗng.")
+                self.active_matches = {}
+        else:
+            print(f"📂 Chưa có file {self.data_path}. Bắt đầu với dữ liệu rỗng.")
+            self.active_matches = {}
+
+    def _save(self):
+        """Ghi dữ liệu trận đấu ra file JSON."""
+        try:
+            # Đảm bảo thư mục cha tồn tại
+            self.data_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.data_path, "w", encoding="utf-8") as f:
+                json.dump(self.active_matches, f, ensure_ascii=False, indent=2)
+        except IOError as e:
+            print(f"⚠️ Lỗi ghi file {self.data_path}: {e}")
+
+    def save(self):
+        """Public method để gọi save từ bên ngoài (vd: sau khi gán message_id)."""
+        self._save()
 
     # ----- TẠO TRẬN -----
     def create_match(self, sport: str, time: str, location: str, creator_name: str, creator_id: int) -> str:
@@ -42,6 +92,7 @@ class MatchManager:
             "created_at": datetime.now().strftime("%H:%M %d/%m"),
             "message_id": None,  # Sẽ gán sau khi gửi embed lên Discord
         }
+        self._save()
         return match_id
 
     # ----- THAM GIA TRẬN -----
@@ -62,6 +113,7 @@ class MatchManager:
         match["players"][user_id] = user_name
         current = len(match["players"])
         target = match["target_players"]
+        self._save()
         return True, f"✅ **{user_name}** đã tham gia! ({current}/{target} người)"
 
     # ----- RỜI TRẬN -----
@@ -79,6 +131,7 @@ class MatchManager:
             return False, "⚠️ Bạn là người tạo trận, hãy dùng `!huy-tran` để huỷ."
 
         del match["players"][user_id]
+        self._save()
         return True, f"👋 Đã rời trận. Còn {len(match['players'])}/{match['target_players']} người."
 
     # ----- HUỶ TRẬN -----
@@ -92,6 +145,7 @@ class MatchManager:
             return False, "⛔ Chỉ người tạo trận mới có quyền huỷ!"
 
         del self.active_matches[match_id]
+        self._save()
         return True, "🗑️ Trận đã được huỷ thành công."
 
     # ----- KIỂM TRA ĐỦ NGƯỜI -----
@@ -120,20 +174,23 @@ class MatchManager:
         if not match:
             return discord.Embed(title="❌ Không tìm thấy trận", color=discord.Color.red())
 
-        # Chọn màu & emoji theo môn
+        # Chọn màu & emoji theo môn (từ config tools.py)
         sport_lower = match["sport"].lower()
-        if "bóng đá" in sport_lower:
-            color = discord.Color.green()
-            emoji = "⚽"
-        elif "cầu lông" in sport_lower:
-            color = discord.Color.blue()
-            emoji = "🏸"
-        elif "bóng rổ" in sport_lower:
-            color = discord.Color.orange()
-            emoji = "🏀"
-        else:
-            color = discord.Color.purple()
-            emoji = "🏅"
+        style = DEFAULT_SPORT_STYLE  # Mặc định
+        for sport_key, sport_style in SPORT_EMOJI_MAP.items():
+            if sport_key in sport_lower:
+                style = sport_style
+                break
+
+        emoji = style["emoji"]
+        color_name = style["color"]
+        color_map = {
+            "green": discord.Color.green(),
+            "blue": discord.Color.blue(),
+            "orange": discord.Color.orange(),
+            "purple": discord.Color.purple(),
+        }
+        color = color_map.get(color_name, discord.Color.purple())
 
         current = len(match["players"])
         target = match["target_players"]
@@ -183,8 +240,17 @@ class MatchManager:
         for m in matches:
             current = len(m["players"])
             target = m["target_players"]
+            # Lấy emoji từ config
+            sport_lower = m["sport"].lower()
+            style = DEFAULT_SPORT_STYLE
+            for sport_key, sport_style in SPORT_EMOJI_MAP.items():
+                if sport_key in sport_lower:
+                    style = sport_style
+                    break
+            sport_emoji = style["emoji"]
+
             embed.add_field(
-                name=f"{'⚽' if 'bóng đá' in m['sport'] else '🏅'} {m['sport']} — {m['time']}",
+                name=f"{sport_emoji} {m['sport']} — {m['time']}",
                 value=f"📍 {m['location']} | 👥 {current}/{target}\n`!join {m['id']}`",
                 inline=False,
             )

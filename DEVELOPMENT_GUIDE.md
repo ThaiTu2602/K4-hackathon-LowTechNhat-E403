@@ -10,13 +10,16 @@ Tài liệu này sẽ hướng dẫn chi tiết cách để nhóm 4 người b�
 Dự án được chia thành các thư mục sau để dễ quản lý:
 ```
 ├── data/
-│   └── knowledge_base.txt   # File văn bản chứa dữ liệu tiện ích giả lập (giờ mở cửa, quy định...)
+│   ├── knowledge_base.txt   # File văn bản chứa dữ liệu tiện ích giả lập (giờ mở cửa, quy định...)
+│   └── matches.json         # File lưu trữ dữ liệu trận đấu (tự động tạo khi bot chạy)
 ├── eval/
 │   └── golden_set.json      # Bộ dữ liệu test 20 câu để đánh giá độ chuẩn xác của Bot
 ├── src/
 │   ├── bot.py               # File chính khởi chạy Bot Discord
 │   ├── llm_handler.py       # File chứa logic gọi API LLM (Gemini/OpenAI) và xử lý Prompt
-│   └── match_manager.py     # File chứa logic quản lý trạng thái các trận đấu (gom nhóm)
+│   ├── match_manager.py     # File chứa logic quản lý trạng thái các trận đấu (gom nhóm)
+│   ├── prompts.py           # Tất cả system prompts (dễ tinh chỉnh prompt AI)
+│   └── tools.py             # Tool definitions & cấu hình (số người, intent, emoji...)
 ├── .env.example             # File mẫu chứa các biến môi trường (Copy ra thành file .env)
 ├── requirements.txt         # Chứa các thư viện Python cần cài đặt
 └── DEVELOPMENT_GUIDE.md     # File hướng dẫn này
@@ -61,9 +64,10 @@ Mỗi thành viên trong nhóm cần thực hiện các bước sau trên máy t
   - Đảm bảo gửi tin trả lời (Reply) lại cho người dùng trên Discord.
 
 ### 🧠 Thành viên 2: AI & Prompt Engineer (LLM Handler)
-- **Nơi code chính:** `src/llm_handler.py` và `data/knowledge_base.txt`
+- **Nơi code chính:** `src/prompts.py`, `src/tools.py`, `src/llm_handler.py` và `data/knowledge_base.txt`
 - **Nhiệm vụ:**
-  - Viết hàm kết nối với API LLM (Gemini hoặc OpenAI).
+  - Tinh chỉnh các System Prompt trong file `src/prompts.py` (không cần đụng vào code Python logic).
+  - Cấu hình Tool Definitions, danh sách intent, số người mặc định trong file `src/tools.py`.
   - **Tính năng 1:** Viết System Prompt sao cho AI trả lời các câu hỏi tiện ích bằng cách CHỈ đọc nội dung từ file `knowledge_base.txt`. (Không bịa đặt).
   - **Tính năng 2:** Implement *Tool Calling (Function Calling)* để khi truyền vào câu chat "Mai 5h đá bóng không", AI trả về file JSON: `{"sport": "bóng đá", "time": "5h chiều mai"}`.
   - Bổ sung dữ liệu giả lập vào `knowledge_base.txt` cho đủ các trường hợp.

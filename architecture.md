@@ -17,7 +17,7 @@ Hệ thống được chia làm 3 lớp (Layers) chính:
 2. **Lớp Logic Ứng dụng (Application Layer - Python Bot Server):**
    - Dùng thư viện `discord.py` để lắng nghe sự kiện (tin nhắn, lệnh) từ Discord.
    - **Router:** Nhận diện tin nhắn thuộc về luồng "Hỏi đáp tiện ích" hay luồng "Gom nhóm thể thao".
-   - **State Manager:** Quản lý trạng thái các "Trận đấu" đang mở (Lưu trữ tạm trong RAM bằng Dictionary hoặc file JSON/SQLite nhỏ). Quản lý số lượng người join, thời gian, trạng thái đủ người.
+   - **State Manager:** Quản lý trạng thái các "Trận đấu" đang mở (Lưu trữ bền vững vào file JSON `data/matches.json`). Quản lý số lượng người join, thời gian, trạng thái đủ người.
 
 3. **Lớp Trí tuệ Nhân tạo & Dữ liệu (AI & Data Layer):**
    - **LLM API (Gemini/OpenAI):** 
@@ -43,8 +43,10 @@ flowchart TD
 
     subgraph AI_Data_Layer["🤖 Lớp AI & Data Layer"]
         LLM["🧠 LLM API (Gemini / OpenAI)"]
-        KB[("📚 Knowledge Base (mock_kb.json)")]
-        MatchDB[("💾 Match State (In-Memory / JSON)")]
+        KB[("📚 Knowledge Base (knowledge_base.txt)")]
+        MatchDB[("💾 Match State (data/matches.json)")]
+        Prompts["📝 prompts.py (System Prompts)"]
+        Tools["🛠️ tools.py (Tool Definitions & Config)"]
     end
 
     User -->|Nhắn tin / Gọi lệnh| Discord
@@ -56,6 +58,11 @@ flowchart TD
     KB_Reader -->|Đọc Context| KB
     KB_Reader -->|Prompt + Context + Question| LLM
     LLM -->|Trả lời kèm Cite Nguồn| Discord
+
+    %% Config
+    Prompts -->|System Prompts| LLM
+    Tools -->|Tool Definitions| LLM
+    Tools -->|DEFAULT_SLOTS, Emoji| StateManager
 
     %% Branch 2: Matchmaking
     IntentRouter -->|2. Gom nhóm thể thao| LLM

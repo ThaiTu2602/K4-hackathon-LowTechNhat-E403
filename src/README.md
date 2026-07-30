@@ -10,10 +10,13 @@ Tài liệu này giải thích cách toàn bộ code hoạt động cùng nhau, 
 src/
 ├── bot.py              ← File chính. Chạy file này để khởi động bot.
 ├── llm_handler.py      ← Bộ não AI. Gọi Google Gemini để hiểu và trả lời.
-└── match_manager.py    ← Bộ quản lý trận. Lưu trữ và xử lý gom nhóm thể thao.
+├── match_manager.py    ← Bộ quản lý trận. Lưu trữ và xử lý gom nhóm thể thao.
+├── prompts.py          ← Tất cả system prompts. Sửa file này để tinh chỉnh AI.
+└── tools.py            ← Tool definitions & cấu hình (số người, intent, emoji...).
 
 data/
-└── knowledge_base.txt  ← "Sách giáo khoa" của bot. AI chỉ trả lời dựa trên file này.
+├── knowledge_base.txt  ← "Sách giáo khoa" của bot. AI chỉ trả lời dựa trên file này.
+└── matches.json        ← Dữ liệu trận đấu (được tự động tạo & cập nhật khi bot chạy).
 
 eval/
 └── golden_set.json     ← Bộ câu hỏi test để đánh giá bot trả lời đúng hay sai.
@@ -79,19 +82,19 @@ eval/
 - Khi chạy `python src/bot.py`, code sẽ dùng Token để kết nối vào Discord.
 - Bot lắng nghe **mọi tin nhắn** trong server. Nhưng chỉ xử lý khi:
   - User **tag bot** (`@VinUni Bot thư viện ở đâu?`) → AI xử lý tự động.
-  - User gõ **lệnh** bắt đầu bằng `!` (ví dụ: `!mo-tran`, `!join`, `!xem-tran`).
+  - User gõ **Slash Command** bắt đầu bằng `/` (ví dụ: `/mo-tran`, `/join`, `/xem-tran`). Discord sẽ tự động gợi ý lệnh.
 
 **Các lệnh có sẵn:**
 
 | Lệnh | Chức năng | Ví dụ |
 |---|---|---|
-| `!ping` | Test bot có online không | `!ping` |
-| `!mo-tran` | Mở trận thể thao mới | `!mo-tran bóng-đá 17h sân-nội-khu` |
-| `!xem-tran` | Xem danh sách trận đang mở | `!xem-tran` |
-| `!join` | Tham gia trận | `!join abc12345` |
-| `!roi-tran` | Rời trận | `!roi-tran abc12345` |
-| `!huy-tran` | Huỷ trận (chỉ chủ trận) | `!huy-tran abc12345` |
-| `!help-bot` | Xem hướng dẫn | `!help-bot` |
+| `/ping` | Test bot có online không | `/ping` |
+| `/mo-tran` | Mở trận thể thao mới | `/mo-tran môn:bóng-đá giờ:17h sân:sân-nội-khu` |
+| `/xem-tran` | Xem danh sách trận đang mở | `/xem-tran` |
+| `/join` | Tham gia trận | `/join id_trận:abc12345` |
+| `/roi-tran` | Rời trận | `/roi-tran id_trận:abc12345` |
+| `/huy-tran` | Huỷ trận (chỉ chủ trận) | `/huy-tran id_trận:abc12345` |
+| `/help-bot` | Xem hướng dẫn | `/help-bot` |
 
 ---
 
@@ -117,7 +120,7 @@ eval/
 
 **Vai trò:** Lưu trữ và quản lý trạng thái các trận thể thao đang mở.
 
-**Cách lưu trữ:** Dùng Dictionary Python (lưu trong RAM). Nếu restart bot thì dữ liệu trận sẽ mất (chấp nhận được cho MVP).
+**Cách lưu trữ:** Dữ liệu được lưu vào file JSON (`data/matches.json`). Bot restart không mất dữ liệu trận đấu.
 
 **Các hàm quan trọng:**
 
@@ -142,6 +145,35 @@ eval/
 
 ---
 
+### 5. `src/prompts.py` — Cấu hình Prompts
+
+**Vai trò:** Tập trung tất cả system prompts vào một nơi duy nhất.
+
+**3 prompt chính:**
+
+| Biến | Dùng cho | Mục đích |
+|---|---|---|
+| `SYSTEM_PROMPT_QNA` | Hỏi đáp tiện ích | Quy tắc AI trả lời dựa trên KB, không bịa đặt |
+| `SYSTEM_PROMPT_CLASSIFY` | Phân loại ý định | Phân loại tin nhắn vào qna/create_match/join_match/... |
+| `SYSTEM_PROMPT_EXTRACT` | Trích xuất thông tin | Bóc tách sport, time, location từ tin nhắn |
+
+> **Để tinh chỉnh prompt AI:** Mở file này và sửa nội dung prompt, không cần đụng vào code logic.
+
+---
+
+### 6. `src/tools.py` — Cấu hình Tools & Hằng số
+
+**Vai trò:** Tập trung các "knob" cấu hình để dễ điều chỉnh.
+
+| Biến | Mô tả |
+|---|---|
+| `VALID_INTENTS` | Danh sách intent hợp lệ (qna, create_match, ...) |
+| `DEFAULT_SLOTS` | Số người mặc định theo môn (bóng đá: 10, cầu lông: 4, ...) |
+| `TOOL_EXTRACT_MATCH` | Schema mô tả tool trích xuất thông tin trận |
+| `SPORT_EMOJI_MAP` | Emoji và màu sắc theo môn thể thao |
+
+---
+
 ## 🚀 Hướng dẫn chạy thử (Quick Start)
 
 ### Bước 1: Cài thư viện
@@ -163,11 +195,11 @@ python bot.py
 ```
 
 ### Bước 4: Test trên Discord
-- Gõ `!ping` → Bot trả lời "Pong!"
+- Gõ `/ping` → Bot trả lời "Pong!"
 - Tag bot: `@bot Căn tin mấy giờ mở cửa?` → AI trả lời
-- Gõ `!mo-tran bóng-đá 17h sân-nội-khu` → Bot tạo bảng gom nhóm
-- Gõ `!xem-tran` → Xem danh sách trận
-- Gõ `!help-bot` → Xem tất cả lệnh
+- Gõ `/mo-tran` → Điền các tham số theo gợi ý của Discord → Bot tạo bảng gom nhóm
+- Gõ `/xem-tran` → Xem danh sách trận
+- Gõ `/help-bot` → Xem tất cả lệnh
 
 ---
 
@@ -176,4 +208,5 @@ python bot.py
 1. **Gemini API Key miễn phí** tại [Google AI Studio](https://aistudio.google.com/apikey). Có giới hạn 15 request/phút cho bản miễn phí.
 2. **Bot chỉ online khi code đang chạy.** Tắt Terminal = bot offline. Sau này có thể deploy lên server (Railway, Render...) để chạy 24/7.
 3. **File `.env` chứa mật khẩu** → KHÔNG BAO GIỜ commit lên Git. File `.gitignore` đã có dòng `.env` để bảo vệ.
-4. **Dữ liệu trận đấu lưu trong RAM** → Restart bot thì mất hết trận. Đây là thiết kế MVP, sau này có thể thêm SQLite/JSON để lưu bền vững.
+4. **Dữ liệu trận đấu lưu vào file JSON** (`data/matches.json`) → Bot restart không mất dữ liệu.
+5. **Muốn tinh chỉnh AI:** Sửa file `src/prompts.py` (prompts) và `src/tools.py` (cấu hình), không cần đụng code logic.
