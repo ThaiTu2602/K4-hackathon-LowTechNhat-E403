@@ -134,7 +134,7 @@ def check_sport_ambiguity(text: str):
             return {
                 "kind": "conflict",
                 "message": (
-                    f"Mình thấy {hour}h thường là <b>{hour}h {canon}</b>, "
+                    f"Mình thấy {hour}h thường là **{hour}h {canon}**, "
                     f"không phải buổi \"{period}\" — bạn xác nhận lại giúp mình đúng giờ nào để lên lịch chính xác nhé?"
                 ),
             }
@@ -148,20 +148,20 @@ def check_sport_ambiguity(text: str):
     if len(stripped) <= 10:
         return {
             "kind": "too_short",
-            "message": "Bạn muốn <b>tìm trận đang mở</b> để ghép vào, hay muốn <b>tạo kèo mới</b>? Nói rõ giúp mình môn + giờ + sân nhé.",
+            "message": "Bạn muốn **tìm trận đang mở** để ghép vào, hay muốn **tạo kèo mới**? Nói rõ giúp mình môn + giờ + sân nhé.",
         }
 
     # ② mơ hồ: có buổi trong ngày (chiều/sáng/tối) nhưng thiếu giờ + sân cụ thể
     if period is not None:
         return {
             "kind": "missing_hour",
-            "message": f"Bạn muốn đá vào <b>mấy giờ</b> buổi {period} và ở <b>sân nào</b> để mình lên lịch giúp — xác nhận giúp mình nhé?",
+            "message": f"Bạn muốn đá vào **mấy giờ** buổi {period} và ở **sân nào** để mình lên lịch giúp — xác nhận giúp mình nhé?",
         }
 
     # ② mơ hồ: không có giờ, không có buổi -> hỏi đủ cả 3 trường
     return {
         "kind": "missing_all",
-        "message": "Bạn muốn đá <b>ngày nào, giờ nào</b>, và ở <b>sân nào</b> để mình lên lịch giúp — xác nhận giúp mình nhé?",
+        "message": "Bạn muốn đá **ngày nào, giờ nào**, và ở **sân nào** để mình lên lịch giúp — xác nhận giúp mình nhé?",
     }
 
 
