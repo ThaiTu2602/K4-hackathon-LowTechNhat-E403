@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VinUni Assistant — Discord</title>
+<style>
+/* ============================================================
+   VinUni Assistant — Discord fidelity prototype
+   Design tokens mirror Discord's dark ("Onyx/Ash") theme.
+   ============================================================ */
+:root{
+  --bg-rail:#1e1f22;      /* server rail + darkest surfaces */
+  --bg-sidebar:#2b2d31;   /* channel + member panels */
+  --bg-chat:#313338;      /* main message area */
+  --bg-input:#383a40;     /* composer + form inputs */
+  --bg-float:#111214;     /* floating popups / tooltips */
+  --bg-modal:#313338;
+  --bg-hover:#35373c;
+  --bg-active:#404249;
+  --bg-mention:rgba(88,101,242,.12);
+
+  --text-strong:#f2f3f5;
+  --text:#dbdee1;
+  --text-muted:#949ba4;
+  --text-faint:#80848e;
+  --text-link:#00a8fc;
+
+  --brand:#5865f2;        /* blurple */
+  --brand-hover:#4752c4;
+  --green:#23a55a;
+  --green-hover:#1a8347;
+  --yellow:#f0b232;
+  --red:#f23f43;
+  --pink:#eb459e;
+
+  --divider:rgba(255,255,255,.06);
+  --elevation:0 8px 24px rgba(0,0,0,.4);
+  --font:"gg sans","Noto Sans",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font);
+  background:var(--bg-rail);
+  color:var(--text);
+  font-size:16px;
+  line-height:1.375;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+::selection{background:rgba(88,101,242,.4)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font-family:inherit}
+
+/* Scrollbars — Discord thin style */
+.scroll{scrollbar-width:thin;scrollbar-color:#1a1b1e transparent}
+.scroll::-webkit-scrollbar{width:8px;height:8px}
+.scroll::-webkit-scrollbar-thumb{background:#1a1b1e;border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+.scroll::-webkit-scrollbar-track{background:transparent}
+
+/* ============================================================ LAYOUT */
+.app{display:flex;height:100vh;width:100vw}
+
+/* ---- SERVER RAIL ---- */
+.rail{
+  width:72px;flex-shrink:0;background:var(--bg-rail);
+  display:flex;flex-direction:column;align-items:center;
+  padding:12px 0;gap:8px;overflow-y:auto;overflow-x:hidden;
+}
+.rail::-webkit-scrollbar{width:0}
+.rail-item{position:relative;display:flex;justify-content:center;width:100%}
+.rail-pill{
+  position:absolute;left:0;top:50%;transform:translateY(-50%) scaleY(0);
+  width:4px;height:40px;background:#fff;border-radius:0 4px 4px 0;
+  transition:transform .2s cubic-bezier(.3,.8,.3,1);
+}
+.rail-item:hover .rail-pill{transform:translateY(-50%) scaleY(.4)}
+.rail-item.active .rail-pill{transform:translateY(-50%) scaleY(1)}
+.rail-icon{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--bg-sidebar);color:var(--text-strong);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:18px;overflow:hidden;
+  transition:border-radius .2s cubic-bezier(.3,.8,.3,1),background .2s;
+}
+.rail-item:hover .rail-icon,.rail-item.active .rail-icon{border-radius:16px}
+.rail-item.active .rail-icon{background:var(--brand);color:#fff}
+.rail-icon.brand-home{background:var(--brand);color:#fff}
+.rail-item:hover .rail-icon.brand-home{background:var(--brand-hover)}
+.rail-icon.add{background:var(--bg-sidebar);color:var(--green);font-size:24px}
+.rail-item:hover .rail-icon.add{background:var(--green);color:#fff}
+.rail-divider{width:32px;height:2px;background:var(--divider);border-radius:1px;margin:2px 0}
+.rail-logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(145deg,#5865f2,#7c3aed);
+  display:flex;align-items:center;justify-content:center;font-size:22px}
+
+/* ---- CHANNEL SIDEBAR ---- */
+.sidebar{
+  width:240px;flex-shrink:0;background:var(--bg-sidebar);
+  display:flex;flex-direction:column;
+}
+.server-header{
+  height:48px;flex-shrink:0;padding:0 16px;display:flex;align-items:center;
+  justify-content:space-between;font-weight:600;font-size:15px;color:var(--text-strong);
+  box-shadow:0 1px 0 rgba(0,0,0,.2),0 1.5px 0 rgba(0,0,0,.05);cursor:pointer;
+  transition:background .1s;
+}
+.server-header:hover{background:var(--bg-hover)}
+.server-header .chev{color:var(--text-muted);font-size:12px}
+.server-banner{
+  margin:0;padding:10px 16px;background:linear-gradient(100deg,rgba(88,101,242,.16),rgba(235,69,158,.10));
+  font-size:11px;color:var(--text-muted);border-bottom:1px solid var(--divider);
+}
+.server-banner b{color:var(--text);font-weight:600}
+.channels{flex:1;overflow-y:auto;padding:8px 8px 20px}
+.cat{
+  display:flex;align-items:center;gap:4px;padding:16px 8px 4px;
+  font-size:11px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--text-faint);cursor:pointer;user-select:none;
+}
+.cat:hover{color:var(--text)}
+.cat .tw{font-size:9px;transition:transform .15s}
+.channel{
+  display:flex;align-items:center;gap:6px;padding:6px 8px;margin:1px 0;border-radius:4px;
+  color:var(--text-faint);font-size:15px;font-weight:500;cursor:pointer;
+  transition:background .1s,color .1s;position:relative;
+}
+.channel:hover{background:var(--bg-hover);color:var(--text)}
+.channel.active{background:var(--bg-active);color:#fff}
+.channel .hash{font-size:20px;color:var(--text-faint);font-weight:400}
+.channel.active .hash{color:var(--text)}
+.channel .cname{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.channel .badge{
+  background:var(--red);color:#fff;font-size:11px;font-weight:700;
+  min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;padding:0 5px;
+}
+.channel.unread::before{
+  content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);
+  width:4px;height:8px;background:#fff;border-radius:0 4px 4px 0;
+}
+.channel.unread{color:var(--text)}
+
+/* user footer */
+.me-bar{
+  height:52px;flex-shrink:0;background:#232428;padding:0 8px;display:flex;align-items:center;gap:8px;
+}
+.me-bar .av{width:32px;height:32px;border-radius:50%;position:relative;flex-shrink:0}
+.me-bar .av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.me-info{flex:1;min-width:0}
+.me-info .nm{font-size:13px;font-weight:600;color:var(--text-strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me-info .st{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me-bar .ico{width:32px;height:32px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+.me-bar .ico:hover{background:var(--bg-hover);color:var(--text)}
+.status-dot{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;background:var(--green);border:3px solid #232428}
+
+/* ---- MAIN ---- */
+.main{flex:1;min-width:0;background:var(--bg-chat);display:flex;flex-direction:column}
+.chan-header{
+  height:48px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 16px;
+  box-shadow:0 1px 0 rgba(0,0,0,.2),0 1.5px 0 rgba(0,0,0,.05);z-index:2;
+}
+.chan-header .hash{font-size:24px;color:var(--text-faint);font-weight:400}
+.chan-header .title{font-weight:700;color:var(--text-strong);font-size:16px}
+.chan-header .sep{width:1px;height:24px;background:var(--divider);margin:0 8px}
+.chan-header .topic{font-size:13px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.header-actions{display:flex;align-items:center;gap:16px;color:var(--text-muted)}
+.header-actions .hi{cursor:pointer;transition:color .1s}
+.header-actions .hi:hover{color:var(--text)}
+.header-actions .hi.on{color:var(--text-strong)}
+
+.messages{flex:1;overflow-y:auto;padding-bottom:24px;display:flex;flex-direction:column;justify-content:flex-end;min-height:0}
+.msg-inner{padding:0}
+
+/* channel intro */
+.chan-intro{padding:16px 16px 8px}
+.chan-intro .big-hash{
+  width:68px;height:68px;border-radius:50%;background:var(--bg-active);
+  display:flex;align-items:center;justify-content:center;font-size:40px;color:var(--text);margin-bottom:8px;
+}
+.chan-intro h2{font-size:32px;font-weight:800;color:var(--text-strong);margin-bottom:8px;letter-spacing:-.01em}
+.chan-intro p{font-size:16px;color:var(--text-muted);max-width:640px}
+.chan-intro .hint{
+  margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;
+}
+.chip{
+  background:var(--bg-input);border:1px solid var(--divider);border-radius:8px;
+  padding:7px 12px;font-size:13px;color:var(--text);cursor:pointer;
+  transition:transform .12s,background .12s,border-color .12s;display:flex;align-items:center;gap:7px;
+}
+.chip:hover{background:var(--bg-active);transform:translateY(-1px);border-color:rgba(88,101,242,.5)}
+.chip .k{color:var(--brand);font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.chip.g .k{color:var(--green)}
+
+.divider-day{display:flex;align-items:center;margin:16px;gap:0}
+.divider-day::before,.divider-day::after{content:"";flex:1;height:1px;background:var(--divider)}
+.divider-day span{font-size:12px;font-weight:600;color:var(--text-faint);padding:0 8px}
+
+/* message row */
+.msg{display:flex;gap:16px;padding:2px 48px 2px 16px;position:relative}
+.msg:hover{background:rgba(2,2,2,.06)}
+.msg.grouped{padding-top:1px;padding-bottom:1px}
+.msg.first{margin-top:14px}
+.msg .avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;overflow:hidden;margin-top:2px}
+.msg .avatar img{width:100%;height:100%;object-fit:cover}
+.msg .avatar.gen{display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:16px}
+.msg.grouped .avatar{visibility:hidden;height:0;margin:0}
+.msg.grouped .timestamp-hover{
+  visibility:hidden;position:absolute;left:16px;top:4px;width:40px;text-align:center;
+  font-size:10px;color:var(--text-faint);
+}
+.msg.grouped:hover .timestamp-hover{visibility:visible}
+.msg .body{flex:1;min-width:0}
+.msg .head{display:flex;align-items:baseline;gap:8px;line-height:1.2}
+.msg .author{font-weight:600;font-size:16px;color:#f2f3f5}
+.msg .bot-tag{
+  background:var(--brand);color:#fff;font-size:10px;font-weight:600;
+  padding:1px 5px;border-radius:4px;position:relative;top:-1px;display:inline-flex;align-items:center;gap:3px;
+}
+.msg .bot-tag svg{width:10px;height:10px}
+.msg .ts{font-size:12px;color:var(--text-faint);font-weight:500}
+.msg .text{font-size:16px;color:var(--text);word-wrap:break-word;white-space:pre-wrap}
+.msg .text a{color:var(--text-link);text-decoration:none}
+.msg .text a:hover{text-decoration:underline}
+.mention{background:var(--bg-mention);color:#c9cdfb;border-radius:3px;padding:0 2px;font-weight:500;cursor:pointer}
+.mention:hover{background:rgba(88,101,242,.24)}
+code.inline{background:#1e1f22;padding:2px 5px;border-radius:4px;font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* hover toolbar */
+.msg .toolbar{
+  position:absolute;top:-16px;right:16px;background:var(--bg-sidebar);
+  border:1px solid rgba(0,0,0,.2);border-radius:8px;display:none;box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.msg:hover .toolbar{display:flex}
+.msg .toolbar button{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);border-radius:6px}
+.msg .toolbar button:hover{background:var(--bg-hover);color:var(--text-strong)}
+
+/* reactions */
+.reactions{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.reaction{
+  background:var(--bg-mention);border:1px solid rgba(88,101,242,.3);border-radius:8px;
+  padding:2px 7px;font-size:13px;color:var(--text);display:flex;align-items:center;gap:5px;cursor:pointer;
+}
+.reaction:hover{border-color:var(--brand)}
+.reaction .cnt{color:#c9cdfb;font-weight:600;font-size:13px}
+
+/* ---- EMBED ---- */
+.embed{
+  margin-top:6px;max-width:520px;background:var(--bg-sidebar);border-radius:4px;
+  border-left:4px solid var(--brand);padding:14px 16px 16px;position:relative;
+  display:grid;grid-template-columns:1fr auto;gap:8px;
+}
+.embed.warn{border-left-color:var(--yellow)}
+.embed.green{border-left-color:var(--green)}
+.embed.pink{border-left-color:var(--pink)}
+.embed-main{min-width:0}
+.embed .provider{font-size:12px;color:var(--text-muted);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.embed .e-title{font-size:16px;font-weight:700;color:var(--text-strong);margin-bottom:6px}
+.embed .e-desc{font-size:14px;color:var(--text);margin-bottom:8px}
+.embed .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin-top:4px}
+.embed .field{min-width:0}
+.embed .field.full{grid-column:1/-1}
+.embed .field .fn{font-size:13px;font-weight:700;color:var(--text-strong);margin-bottom:2px}
+.embed .field .fv{font-size:14px;color:var(--text-muted)}
+.embed .field .fv b{color:var(--text);font-weight:600}
+.embed .e-thumb{width:72px;height:72px;border-radius:8px;background:var(--bg-active);display:flex;align-items:center;justify-content:center;font-size:34px;flex-shrink:0}
+.embed .e-footer{margin-top:12px;font-size:12px;color:var(--text-faint);display:flex;align-items:center;gap:6px;grid-column:1/-1}
+.verified{color:var(--green);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.unverified{color:var(--yellow);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+
+/* team card (embed variant) */
+.team-card{border-left-color:var(--green)}
+.roster{margin-top:10px}
+.roster .rlabel{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.roster .rlabel .cur{color:var(--text-strong);font-weight:700}
+.roster .rlabel .cap{color:var(--text-muted)}
+.bar{height:8px;background:#1e1f22;border-radius:4px;overflow:hidden}
+.bar .fill{height:100%;background:linear-gradient(90deg,var(--green),#3fd07a);border-radius:4px;width:0;transition:width .6s cubic-bezier(.3,.9,.3,1)}
+.bar .fill.full{background:linear-gradient(90deg,var(--brand),#7c88ff)}
+.avatar-stack{display:flex;margin-top:10px}
+.avatar-stack .a{width:28px;height:28px;border-radius:50%;border:2px solid var(--bg-sidebar);margin-left:-8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.avatar-stack .a:first-child{margin-left:0}
+.avatar-stack .more{background:var(--bg-active);color:var(--text-muted);font-size:11px}
+.card-actions{grid-column:1/-1;display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{
+  padding:8px 16px;border-radius:4px;font-size:14px;font-weight:600;
+  transition:background .15s,transform .1s,opacity .15s;display:inline-flex;align-items:center;gap:6px;
+}
+.btn:active{transform:scale(.98)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:var(--green-hover)}
+.btn-brand{background:var(--brand);color:#fff}
+.btn-brand:hover{background:var(--brand-hover)}
+.btn-sec{background:var(--bg-input);color:var(--text)}
+.btn-sec:hover{background:var(--bg-active)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--divider)}
+.btn-ghost:hover{color:var(--text);border-color:var(--text-muted)}
+.btn.joined{background:var(--bg-active);color:var(--green);cursor:default}
+.btn.joined:hover{background:var(--bg-active)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* typing indicator */
+.typing{display:flex;align-items:center;gap:16px;padding:4px 16px 8px 16px;height:0;overflow:hidden;opacity:0;transition:opacity .2s,height .2s}
+.typing.show{height:auto;opacity:1;padding-top:8px;padding-bottom:8px}
+.typing .avatar{width:24px;height:24px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center}
+.typing .dots{display:flex;gap:4px;align-items:center}
+.typing .dots span{width:7px;height:7px;border-radius:50%;background:var(--text-muted);animation:bounce 1.2s infinite}
+.typing .dots span:nth-child(2){animation-delay:.2s}
+.typing .dots span:nth-child(3){animation-delay:.4s}
+.typing .lbl{font-size:13px;color:var(--text-muted)}
+.typing .lbl b{color:var(--text)}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+/* ---- COMPOSER ---- */
+.composer-wrap{padding:0 16px 24px;position:relative}
+.slash-pop{
+  position:absolute;bottom:calc(100% + 8px);left:16px;right:16px;background:var(--bg-float);
+  border-radius:8px;box-shadow:var(--elevation);overflow:hidden;display:none;animation:popup .15s ease;
+}
+.slash-pop.show{display:block}
+@keyframes popup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.slash-head{padding:12px 16px 8px;font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--divider)}
+.slash-list{max-height:340px;overflow-y:auto;padding:8px}
+.slash-item{display:flex;gap:12px;align-items:center;padding:9px 10px;border-radius:6px;cursor:pointer}
+.slash-item:hover,.slash-item.sel{background:var(--bg-hover)}
+.slash-item .sico{width:36px;height:36px;border-radius:8px;background:var(--brand);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.slash-item .sname{font-size:15px;font-weight:600;color:var(--text-strong)}
+.slash-item .sname .arg{color:var(--text-faint);font-weight:400}
+.slash-item .sdesc{font-size:13px;color:var(--text-muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slash-item .sbody{min-width:0}
+
+.composer{
+  background:var(--bg-input);border-radius:8px;display:flex;align-items:flex-start;padding:0 16px;
+}
+.composer .plus{width:24px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);flex-shrink:0}
+.composer .plus:hover{color:var(--text)}
+.composer .ta{
+  flex:1;background:transparent;border:none;outline:none;color:var(--text-strong);
+  font-size:16px;padding:11px 12px;resize:none;max-height:200px;line-height:1.375;
+}
+.composer .ta::placeholder{color:var(--text-faint)}
+.composer .tools{display:flex;align-items:center;gap:14px;height:44px;color:var(--text-muted)}
+.composer .tools .ti{cursor:pointer;transition:color .1s}
+.composer .tools .ti:hover{color:var(--text)}
+.composer .send{color:var(--brand)}
+
+/* ---- MEMBER LIST ---- */
+.members{width:240px;flex-shrink:0;background:var(--bg-sidebar);overflow-y:auto;padding:16px 8px}
+.members.hidden{display:none}
+.mgroup{font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-faint);padding:16px 8px 4px;letter-spacing:.02em}
+.member{display:flex;align-items:center;gap:12px;padding:5px 8px;border-radius:4px;cursor:pointer;opacity:1}
+.member:hover{background:var(--bg-hover)}
+.member.off{opacity:.42}
+.member .mav{width:32px;height:32px;border-radius:50%;position:relative;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px}
+.member .mav img{width:100%;height:100%;object-fit:cover}
+.member .mdot{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;border:3px solid var(--bg-sidebar)}
+.mdot.on{background:var(--green)}.mdot.idle{background:var(--yellow)}.mdot.dnd{background:var(--red)}.mdot.offl{background:var(--text-faint)}
+.member .mname{font-size:15px;font-weight:500;color:var(--text-muted);display:flex;align-items:center;gap:6px;overflow:hidden}
+.member:hover .mname{color:var(--text)}
+.member .mname.role-bot{color:#c9cdfb}
+.member .mini-bot{background:var(--brand);color:#fff;font-size:9px;font-weight:600;padding:0 4px;border-radius:3px}
+.member .mname .crown{color:var(--yellow);font-size:12px}
+
+/* ---- MODAL ---- */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:50;
+}
+.overlay.show{display:flex;animation:fade .15s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{
+  width:460px;max-width:calc(100vw - 32px);background:var(--bg-modal);border-radius:8px;overflow:hidden;
+  box-shadow:var(--elevation);animation:modalin .2s cubic-bezier(.3,.8,.3,1);max-height:90vh;display:flex;flex-direction:column;
+}
+@keyframes modalin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.modal-head{padding:20px 16px 8px;text-align:center;position:relative}
+.modal-head h3{font-size:20px;font-weight:700;color:var(--text-strong)}
+.modal-head p{font-size:14px;color:var(--text-muted);margin-top:6px}
+.modal-head .x{position:absolute;top:14px;right:14px;color:var(--text-muted);width:24px;height:24px;font-size:22px;display:flex;align-items:center;justify-content:center}
+.modal-head .x:hover{color:var(--text)}
+.modal-body{padding:8px 16px 16px;overflow-y:auto}
+.field-group{margin-bottom:16px}
+.field-group label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;letter-spacing:.02em}
+.field-group label .req{color:var(--red)}
+.field-group input,.field-group select,.field-group textarea{
+  width:100%;background:var(--bg-rail);border:1px solid transparent;border-radius:4px;
+  padding:10px 11px;color:var(--text-strong);font-size:15px;outline:none;
+}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{border-color:var(--brand)}
+.field-group select{cursor:pointer}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:70px;padding:9px;background:var(--bg-rail);border:1px solid transparent;border-radius:4px;color:var(--text-muted);font-size:14px;font-weight:600}
+.seg button.on{border-color:var(--brand);background:rgba(88,101,242,.15);color:var(--text-strong)}
+.seg button:hover{color:var(--text)}
+.modal-foot{padding:16px;background:#2b2d31;display:flex;justify-content:flex-end;gap:12px}
+.modal-foot .btn-text{padding:8px 16px;font-size:14px;font-weight:600;color:var(--text)}
+.modal-foot .btn-text:hover{text-decoration:underline}
+
+/* toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);
+  background:var(--bg-float);color:var(--text);padding:12px 18px;border-radius:8px;font-size:14px;
+  box-shadow:var(--elevation);z-index:80;display:flex;align-items:center;gap:10px;transition:transform .3s cubic-bezier(.3,.8,.3,1);
+  border-left:3px solid var(--green);max-width:90vw;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.brand{border-left-color:var(--brand)}
+.toast.warn{border-left-color:var(--yellow)}
+
+/* small helper text under feature intro */
+.kbd{font-family:ui-monospace,Menlo,monospace;background:#1e1f22;padding:1px 6px;border-radius:4px;font-size:12px;color:var(--text)}
+
+/* responsive: hide side panels on narrow screens */
+@media(max-width:1000px){.members{display:none}}
+@media(max-width:820px){.sidebar{width:200px}}
+@media(max-width:680px){
+  .rail{width:60px}.sidebar{display:none}.embed{max-width:100%}
+  .msg{padding-right:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SERVER RAIL ============ -->
+  <nav class="rail scroll">
+    <div class="rail-item" title="Tin nhắn trực tiếp">
+      <span class="rail-pill"></span>
+      <div class="rail-icon brand-home">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6 2 11c0 2.4 1 4.6 2.8 6.2L2 22l5-1.8c1.5.5 3.2.8 5 .8 5.5 0 10-4 10-9S17.5 2 12 2z"/></svg>
+      </div>
+    </div>
+    <div class="rail-divider"></div>
+    <div class="rail-item active" title="VinUni · Học viên AI">
+      <span class="rail-pill"></span>
+      <div class="rail-icon" style="background:linear-gradient(145deg,#5865f2,#7c3aed)">VU</div>
+    </div>
+    <div class="rail-item" title="AI20K Build Phase"><span class="rail-pill"></span><div class="rail-icon" style="background:#232428">AI</div></div>
+    <div class="rail-item" title="CLB Thể thao VinUni"><span class="rail-pill"></span><div class="rail-icon" style="background:#232428">TT</div></div>
+    <div class="rail-divider"></div>
+    <div class="rail-item" title="Thêm máy chủ"><span class="rail-pill"></span><div class="rail-icon add">+</div></div>
+    <div class="rail-item" title="Khám phá"><span class="rail-pill"></span><div class="rail-icon add" style="color:var(--green)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm3.5 6.5l-2 5-5 2 2-5 5-2z"/></svg>
+    </div></div>
+  </nav>
+
+  <!-- ============ CHANNEL SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="server-header">
+      <span>VinUni · Học viên AI</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="server-banner">
+      Trợ lý <b>VinUni Assistant</b> đang trực. Tra cứu tiện ích &amp; lập nhóm thể thao ngay trong kênh.
+    </div>
+    <div class="channels scroll" id="channelList"></div>
+    <div class="me-bar">
+      <div class="av">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(145deg,#eb459e,#f0b232);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px">HM</div>
+        <span class="status-dot"></span>
+      </div>
+      <div class="me-info">
+        <div class="nm">Hoàng Minh</div>
+        <div class="st">Học viên khóa AI · K4</div>
+      </div>
+      <div class="ico" title="Tắt tiếng"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3zm7 9a7 7 0 01-14 0H3a9 9 0 008 8.94V24h2v-3.06A9 9 0 0021 12h-2z"/></svg></div>
+      <div class="ico" title="Tai nghe"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 00-9 9v5a3 3 0 003 3h1v-8H5v-0a7 7 0 0114 0v0h-2v8h1a3 3 0 003-3v-5a9 9 0 00-9-9z"/></svg></div>
+      <div class="ico" title="Cài đặt"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 4l2 1.5-2 3.5-2.4-.7a7.6 7.6 0 01-1.6 1l-.5 2.5h-4l-.5-2.5a7.6 7.6 0 01-1.6-1L5.9 21l-2-3.5L5.9 16a7.7 7.7 0 010-2L3.9 12.5l2-3.5 2.4.7a7.6 7.6 0 011.6-1L10.4 6h4l.5 2.5c.6.3 1.1.6 1.6 1l2.4-.7 2 3.5L21 12z"/></svg></div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <header class="chan-header">
+      <span class="hash">#</span>
+      <span class="title" id="chanTitle">tra-cứu-tiện-ích</span>
+      <span class="sep"></span>
+      <span class="topic" id="chanTopic">Hỏi bất cứ điều gì về tiện ích trong trường</span>
+      <div style="flex:1"></div>
+      <div class="header-actions">
+        <span class="hi" title="Cuộc trò chuyện đang diễn ra"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-9 14.5L2 22l5.5-1a10 10 0 104.5-19zm-1 5h2v6h-2zm0 8h2v2h-2z"/></svg></span>
+        <span class="hi on" id="toggleMembers" title="Ẩn/hiện danh sách thành viên"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 12a3 3 0 100-6 3 3 0 000 6zm8 0a3 3 0 100-6 3 3 0 000 6zM8 14c-3 0-6 1.5-6 4v2h12v-2c0-2.5-3-4-6-4zm8 0c-.4 0-.9 0-1.3.1 1.4 1 2.3 2.3 2.3 3.9v2h5v-2c0-2.5-3-4-6-4z"/></svg></span>
+        <span class="hi" title="Tìm kiếm"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 2a8 8 0 105 14.3l5.3 5.4 1.4-1.4-5.4-5.3A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/></svg></span>
+      </div>
+    </header>
+
+    <section class="messages scroll" id="messages"></section>
+
+    <div class="typing" id="typing">
+      <div class="avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6z"/></svg></div>
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="lbl"><b>VinUni Assistant</b> đang soạn tin...</div>
+    </div>
+
+    <div class="composer-wrap">
+      <div class="slash-pop" id="slashPop">
+        <div class="slash-head" id="slashHead">Lệnh · VinUni Assistant</div>
+        <div class="slash-list scroll" id="slashList"></div>
+      </div>
+      <div class="composer">
+        <span class="plus"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4a1 1 0 011 1v6h6a1 1 0 010 2h-6v6a1 1 0 01-2 0v-6H5a1 1 0 010-2h6V5a1 1 0 011-1z"/></svg></span>
+        <textarea class="ta" id="composerInput" rows="1" placeholder="Nhắn #tra-cứu-tiện-ích  ·  gõ / để xem lệnh"></textarea>
+        <div class="tools">
+          <span class="ti" title="Quà tặng Nitro"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 7h-2.2a3 3 0 00-4.8-3.5A3 3 0 006.2 7H4a1 1 0 00-1 1v3a1 1 0 001 1v7a2 2 0 002 2h12a2 2 0 002-2v-7a1 1 0 001-1V8a1 1 0 00-1-1zM11 19H6v-6h5zm0-8H5V9h6zm2-4a1 1 0 111 1h-1zm-3-1a1 1 0 011 1H9a1 1 0 011-1zm8 13h-5v-6h5zm1-8h-6V9h6z"/></svg></span>
+          <span class="ti" title="GIF"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm5 4H5v4h2v-1H6v-1h1v-2zm2 0H8v4h1v-4zm4 0h-3v4h1v-1h1v-1h-1v-1h2v-1z"/></svg></span>
+          <span class="ti send" id="sendBtn" title="Gửi"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3l18 9-18 9 4-9-4-9zm4.5 9L5 6.9 15.6 12 5 17.1 7.5 12z"/></svg></span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ MEMBER LIST ============ -->
+  <aside class="members scroll" id="memberList"></aside>
+</div>
+
+<!-- ============ CREATE TEAM MODAL ============ -->
+<div class="overlay" id="teamModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Tạo thẻ nhóm thể thao</h3>
+      <p>Trợ lý sẽ đăng thẻ nhóm vào <span class="kbd">#lập-nhóm-thể-thao</span> để mọi người ghép.</p>
+      <span class="x" id="closeTeam">×</span>
+    </div>
+    <div class="modal-body scroll">
+      <div class="field-group">
+        <label>Môn thể thao <span class="req">*</span></label>
+        <div class="seg" id="segSport">
+          <button class="on" data-v="Bóng đá">Bóng đá</button>
+          <button data-v="Cầu lông">Cầu lông</button>
+          <button data-v="Bóng rổ">Bóng rổ</button>
+          <button data-v="Chạy bộ">Chạy bộ</button>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Tên nhóm / mô tả ngắn <span class="req">*</span></label>
+        <input id="teamName" type="text" placeholder="VD: Giao lưu bóng đá xả stress K4" maxlength="60" />
+      </div>
+      <div class="field-group" style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label>Ngày</label>
+          <select id="teamDay">
+            <option>Hôm nay</option><option>Ngày mai</option><option selected>Thứ 7</option>
+            <option>Chủ nhật</option><option>Thứ 2</option><option>Thứ 3</option><option>Thứ 4</option><option>Thứ 5</option><option>Thứ 6</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label>Giờ bắt đầu</label>
+          <select id="teamTime">
+            <option>06:00</option><option>07:00</option><option selected>17:00</option>
+            <option>18:00</option><option>19:00</option><option>20:00</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Trình độ</label>
+        <div class="seg" id="segLevel">
+          <button class="on" data-v="Vui là chính">Vui là chính</button>
+          <button data-v="Trung bình">Trung bình</button>
+          <button data-v="Khá / phong trào">Khá</button>
+        </div>
+      </div>
+      <div class="field-group" style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label>Sức chứa (người)</label>
+          <select id="teamCap">
+            <option>6</option><option selected>10</option><option>12</option><option>14</option><option>16</option>
+          </select>
+        </div>
+        <div style="flex:1.4">
+          <label>Địa điểm sân</label>
+          <input id="teamField" type="text" placeholder="VD: Sân cỏ nhân tạo VinUni" value="Sân trường VinUni" />
+        </div>
+      </div>
+      <div class="field-group" style="margin-bottom:4px">
+        <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13px;color:var(--text)">
+          <input type="checkbox" id="teamVerified" style="width:auto" />
+          Tôi đã xác nhận sân trống ở khung giờ này với nguồn chính thức
+        </label>
+        <p style="font-size:12px;color:var(--text-faint);margin-top:6px;padding-left:24px">
+          Nếu chưa xác nhận, thẻ sẽ được đánh dấu <b style="color:var(--yellow)">Chưa xác minh</b> — trợ lý không tuyên bố đã đặt sân.
+        </p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-text" id="cancelTeam">Huỷ</button>
+      <button class="btn btn-green" id="submitTeam">Đăng thẻ nhóm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+/* ============================================================
+   DATA MODEL
+   ============================================================ */
+const ME = {name:"Hoàng Minh", init:"HM", grad:"linear-gradient(145deg,#eb459e,#f0b232)"};
+
+const AVATARS = {
+  bot:{init:"AI", bg:"var(--brand)"},
+  duong:{init:"VD", bg:"linear-gradient(145deg,#f0b232,#f23f43)"},
+  toan:{init:"LT", bg:"linear-gradient(145deg,#23a55a,#1e88e5)"},
+  vinh:{init:"NV", bg:"linear-gradient(145deg,#5865f2,#eb459e)"},
+  ngoan:{init:"PN", bg:"linear-gradient(145deg,#00a8fc,#23a55a)"},
+  lan:{init:"HL", bg:"linear-gradient(145deg,#eb459e,#7c3aed)"},
+  binh:{init:"CB", bg:"linear-gradient(145deg,#f0b232,#23a55a)"},
+};
+
+/* ---- Utility knowledge base (demo data) ---- */
+const KB = [
+  {
+    keys:["lò vi sóng","vi sóng","hâm","microwave","hâm nóng","hâm cơm"],
+    icon:"🍲", accent:"", verified:true,
+    title:"Lò vi sóng trong khuôn viên",
+    desc:"Có 4 lò vi sóng dùng chung cho học viên, ưu tiên giờ nghỉ trưa.",
+    fields:[
+      {n:"Canteen tầng trệt · Toà A",v:"<b>2 lò</b> · cạnh khu nước uống"},
+      {n:"Pantry tầng 3 · Toà B",v:"<b>1 lò</b> · gần phòng lab"},
+      {n:"Khu sinh hoạt chung tầng 5",v:"<b>1 lò</b> · cạnh máy bán hàng"},
+      {n:"Giờ đông nhất",v:"11h30–13h00 (nên xếp hàng)"},
+    ],
+    source:"Sổ tay Học viên VinUni 2025 · mục Tiện ích"
+  },
+  {
+    keys:["nước","lấy nước","uống nước","water","bình nước","đổ nước","nước nóng"],
+    icon:"🚰", accent:"green", verified:true,
+    title:"Điểm lấy nước uống miễn phí",
+    desc:"Máy lọc nước nóng/lạnh đặt ở mỗi tầng, mang bình cá nhân để hạn chế rác nhựa.",
+    fields:[
+      {n:"Mỗi tầng học",v:"<b>2 máy</b> · gần thang máy 2 đầu hành lang"},
+      {n:"Nước nóng",v:"Có ở máy tầng trệt &amp; tầng 3"},
+      {n:"Thư viện",v:"1 máy ở sảnh vào"},
+      {n:"Sân thể thao",v:"1 trụ nước ngoài trời cạnh sân bóng"},
+    ],
+    source:"Phòng Cơ sở vật chất VinUni"
+  },
+  {
+    keys:["sân bóng","sân cỏ","bóng đá","đá bóng","sân thể thao","sân vận động","football","giờ mở sân","sân"],
+    icon:"⚽", accent:"", verified:false,
+    title:"Sân bóng & khung giờ mở",
+    desc:"Sân cỏ nhân tạo dùng chung cho CLB và lớp thể thao. Nên đặt trước qua Phòng CTSV.",
+    fields:[
+      {n:"Giờ mở (T2–T6)",v:"<b>06:00 – 21:00</b>"},
+      {n:"Giờ mở (T7–CN)",v:"<b>07:00 – 22:00</b>"},
+      {n:"Khung trống thường",v:"Sáng sớm &amp; sau 19:00"},
+      {n:"Đặt sân",v:"Phòng CTSV hoặc app nội bộ"},
+    ],
+    source:"Lịch sân do sinh viên phản hồi — cần Phòng CTSV xác nhận khung giờ cụ thể"
+  },
+  {
+    keys:["cầu lông","badminton","sân cầu"],
+    icon:"🏸", accent:"", verified:true,
+    title:"Sân cầu lông",
+    desc:"Nhà thi đấu đa năng có 4 sân cầu lông, cho mượn vợt tại quầy lễ tân.",
+    fields:[
+      {n:"Vị trí",v:"Nhà thi đấu đa năng · tầng 1"},
+      {n:"Giờ mở",v:"<b>06:00 – 21:30</b> hằng ngày"},
+      {n:"Số sân",v:"<b>4 sân</b> · đặt theo ca 45 phút"},
+      {n:"Mượn vợt/cầu",v:"Miễn phí, để lại thẻ SV"},
+    ],
+    source:"Nhà thi đấu VinUni · nội quy sử dụng"
+  },
+  {
+    keys:["thư viện","library","học nhóm","phòng học","chỗ học","tự học"],
+    icon:"📚", accent:"", verified:true,
+    title:"Thư viện & phòng tự học",
+    desc:"Không gian yên tĩnh và phòng học nhóm đặt trước theo giờ.",
+    fields:[
+      {n:"Giờ mở (T2–T6)",v:"<b>07:30 – 22:00</b>"},
+      {n:"Cuối tuần",v:"<b>08:00 – 20:00</b>"},
+      {n:"Phòng học nhóm",v:"6 phòng · đặt qua web thư viện"},
+      {n:"Quy định",v:"Giữ im lặng khu đọc, đồ ăn để ngoài"},
+    ],
+    source:"Trung tâm Thông tin – Thư viện VinUni"
+  },
+  {
+    keys:["thẻ","thẻ sinh viên","quẹt thẻ","nạp tiền","thẻ sv","student card","nạp thẻ"],
+    icon:"💳", accent:"pink", verified:true,
+    title:"Thẻ sinh viên & thanh toán",
+    desc:"Thẻ SV dùng để ra vào, mượn sách, thanh toán canteen và máy bán hàng.",
+    fields:[
+      {n:"Nạp tiền",v:"Kiosk sảnh chính hoặc app VinUni"},
+      {n:"Thanh toán",v:"Canteen, máy bán hàng, máy in"},
+      {n:"Mất thẻ",v:"Báo Phòng CTSV để khoá &amp; cấp lại"},
+      {n:"Ra/vào toà nhà",v:"Quẹt tại cửa từ mỗi tầng"},
+    ],
+    source:"Phòng Công tác Sinh viên (CTSV)"
+  },
+  {
+    keys:["máy in","in ấn","photo","photocopy","in tài liệu","scan"],
+    icon:"🖨️", accent:"", verified:true,
+    title:"Máy in & photocopy",
+    desc:"Máy in dùng chung tính phí qua thẻ SV, hỗ trợ in từ USB và email.",
+    fields:[
+      {n:"Vị trí",v:"Thư viện tầng 1 &amp; pantry tầng 3"},
+      {n:"Giá in",v:"Trắng đen ~500đ/trang"},
+      {n:"Cách in",v:"Gửi email tới print@vinuni hoặc USB"},
+      {n:"Thanh toán",v:"Trừ số dư trong thẻ SV"},
+    ],
+    source:"Trung tâm Thư viện VinUni"
+  },
+  {
+    keys:["wifi","internet","mạng","password wifi","mật khẩu wifi"],
+    icon:"📶", accent:"green", verified:true,
+    title:"Wifi & mạng nội bộ",
+    desc:"Đăng nhập bằng tài khoản email trường, phủ toàn khuôn viên.",
+    fields:[
+      {n:"Tên mạng",v:"<b>VinUni-Student</b>"},
+      {n:"Đăng nhập",v:"Email + mật khẩu trường"},
+      {n:"Hỗ trợ IT",v:"helpdesk@vinuni · tầng trệt toà A"},
+      {n:"Phòng lab",v:"Mạng LAN riêng cho lớp AI"},
+    ],
+    source:"Phòng CNTT VinUni"
+  },
+  {
+    keys:["gửi xe","đỗ xe","bãi xe","parking","chỗ để xe","xe máy","ô tô"],
+    icon:"🅿️", accent:"", verified:true,
+    title:"Bãi giữ xe",
+    desc:"Bãi xe máy và ô tô ngay dưới hầm, quẹt thẻ SV khi ra vào.",
+    fields:[
+      {n:"Xe máy",v:"Hầm B1 · quẹt thẻ SV"},
+      {n:"Ô tô",v:"Hầm B2 · đăng ký biển số trước"},
+      {n:"Giờ mở",v:"<b>05:30 – 22:30</b>"},
+      {n:"Xe đạp",v:"Khu để xe đạp cạnh cổng phụ"},
+    ],
+    source:"Ban Quản lý toà nhà VinUni"
+  },
+  {
+    keys:["canteen","căng tin","ăn uống","đồ ăn","quán ăn","cà phê","coffee","cafe"],
+    icon:"🍜", accent:"", verified:true,
+    title:"Canteen & quán ăn",
+    desc:"Khu ẩm thực tầng trệt với nhiều quầy, thanh toán bằng thẻ SV hoặc chuyển khoản.",
+    fields:[
+      {n:"Giờ mở",v:"<b>06:30 – 20:00</b>"},
+      {n:"Vị trí",v:"Tầng trệt toà A · khu food court"},
+      {n:"Cà phê",v:"Quầy cạnh sảnh thư viện"},
+      {n:"Giờ đông",v:"11h30–12h30, nên đi sớm"},
+    ],
+    source:"Ban Dịch vụ VinUni"
+  },
+];
+
+/* ---- Sports teams (mutable state) ---- */
+let TEAMS = [
+  {
+    id:"t1", sport:"Bóng đá", emoji:"⚽",
+    name:"Giao lưu bóng đá xả stress K4",
+    host:"Vũ Thành Dương", hostKey:"duong",
+    day:"Thứ 7", time:"17:00", level:"Vui là chính",
+    field:"Sân trường VinUni", verified:false,
+    cap:10, members:["Vũ Thành Dương","Lê Ngô Thanh Toàn","Phạm Văn Ngoan","Nguyễn Thành Vinh"],
+    memberKeys:["duong","toan","ngoan","vinh"]
+  },
+  {
+    id:"t2", sport:"Bóng đá", emoji:"⚽",
+    name:"Đá phủi tối Chủ nhật",
+    host:"Cao Quảng Bình", hostKey:"binh",
+    day:"Chủ nhật", time:"19:00", level:"Trung bình",
+    field:"Sân cỏ nhân tạo VinUni", verified:true,
+    cap:12, members:["Cao Quảng Bình","Nguyễn Hoài Nam","Thái Doãn Kiên"],
+    memberKeys:["binh","vinh","toan"]
+  },
+  {
+    id:"t3", sport:"Bóng đá", emoji:"⚽",
+    name:"Sáng sớm chạy + đá nhẹ",
+    host:"Hà Lan", hostKey:"lan",
+    day:"Thứ 7", time:"06:00", level:"Vui là chính",
+    field:"Sân trường VinUni", verified:false,
+    cap:8, members:["Hà Lan","Phạm Văn Ngoan"],
+    memberKeys:["lan","ngoan"]
+  },
+];
+
+/* ============================================================
+   CHANNELS
+   ============================================================ */
+const CHANNELS = {
+  chung:{cat:"CỘNG ĐỒNG", name:"chung", topic:"Kênh chào hỏi chung của học viên khóa AI"},
+  "hoi-dap":{cat:"CỘNG ĐỒNG", name:"hỏi-đáp", topic:"Hỏi gì đáp nấy — hoặc để trợ lý AI trả lời"},
+  "tra-cuu":{cat:"TIỆN ÍCH VINUNI", name:"tra-cứu-tiện-ích", topic:"Hỏi bất cứ điều gì về tiện ích trong trường"},
+  "lap-nhom":{cat:"THỂ THAO", name:"lập-nhóm-thể-thao", topic:"Rủ &amp; ghép nhóm chơi thể thao · MVP: bóng đá"},
+};
+
+const CHANNEL_ORDER = [
+  {cat:"CỘNG ĐỒNG", items:[
+    {id:"chung", name:"chung"},
+    {id:"hoi-dap", name:"hỏi-đáp"},
+  ]},
+  {cat:"TIỆN ÍCH VINUNI", items:[
+    {id:"tra-cuu", name:"tra-cứu-tiện-ích", active:true},
+  ]},
+  {cat:"THỂ THAO", items:[
+    {id:"lap-nhom", name:"lập-nhóm-thể-thao"},
+  ]},
+];
+
+/* ============================================================
+   SLASH COMMANDS
+   ============================================================ */
+const COMMANDS = [
+  {name:"tienich", arg:"[từ khóa]", icon:"🔎", desc:"Tra cứu tiện ích VinUni (lò vi sóng, nước, sân, thư viện...)"},
+  {name:"hoi", arg:"[câu hỏi]", icon:"💬", desc:"Hỏi trợ lý tự do — trả lời dựa trên tài liệu nội bộ"},
+  {name:"timnhom", arg:"[môn]", icon:"🧑‍🤝‍🧑", desc:"Tìm nhóm thể thao đang còn chỗ để ghép"},
+  {name:"lapnhom", arg:"", icon:"➕", desc:"Mở biểu mẫu tạo thẻ nhóm thể thao mới"},
+  {name:"lich", arg:"[môn]", icon:"📅", desc:"Xem khung giờ mở của các sân thể thao"},
+];
+
+/* ============================================================
+   STATE + RENDER
+   ============================================================ */
+let currentChannel = "tra-cuu";
+const messagesEl = document.getElementById("messages");
+const typingEl = document.getElementById("typing");
+
+/* store messages per channel so switching keeps history */
+const history = {chung:[], "hoi-dap":[], "tra-cuu":[], "lap-nhom":[]};
+
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+/* ---- channel list ---- */
+function renderChannels(){
+  const el = document.getElementById("channelList");
+  el.innerHTML = CHANNEL_ORDER.map(group=>`
+    <div class="cat"><span class="tw">▾</span>${group.cat}</div>
+    ${group.items.map(c=>`
+      <div class="channel ${c.id===currentChannel?"active":""}" data-ch="${c.id}">
+        <span class="hash">#</span>
+        <span class="cname">${c.name}</span>
+      </div>`).join("")}
+  `).join("");
+  el.querySelectorAll(".channel").forEach(ch=>{
+    ch.onclick=()=>switchChannel(ch.dataset.ch);
+  });
+}
+
+/* ---- channel intro block ---- */
+function channelIntro(id){
+  const c = CHANNELS[id];
+  let hints = "";
+  if(id==="tra-cuu"){
+    hints = `<div class="hint">
+      <div class="chip" data-fill="/tienich lò vi sóng"><span class="k">/tienich</span> lò vi sóng ở đâu?</div>
+      <div class="chip" data-fill="/tienich chỗ lấy nước"><span class="k">/tienich</span> chỗ lấy nước</div>
+      <div class="chip" data-send="Sân bóng mở tới mấy giờ vậy?">Sân bóng mở tới mấy giờ?</div>
+      <div class="chip" data-send="Thư viện mở cửa khi nào?">Thư viện mở khi nào?</div>
+    </div>`;
+  } else if(id==="lap-nhom"){
+    hints = `<div class="hint">
+      <div class="chip g" data-fill="/timnhom bóng đá"><span class="k">/timnhom</span> bóng đá</div>
+      <div class="chip" data-send="Mình muốn đá bóng chiều thứ 7, trình độ vui là chính">Mình muốn đá bóng chiều thứ 7</div>
+      <div class="chip g" data-fill="/lapnhom"><span class="k">/lapnhom</span> tạo thẻ nhóm mới</div>
+    </div>`;
+  } else if(id==="hoi-dap"){
+    hints = `<div class="hint">
+      <div class="chip" data-send="Máy in ở đâu và in như thế nào?">Máy in ở đâu?</div>
+      <div class="chip" data-send="Wifi trường đăng nhập sao?">Wifi đăng nhập sao?</div>
+    </div>`;
+  }
+  return `<div class="chan-intro">
+    <div class="big-hash">#</div>
+    <h2>Chào mừng tới #${c.name}</h2>
+    <p>${introText(id)}</p>
+    ${hints}
+  </div>
+  <div class="divider-day"><span>Hôm nay</span></div>`;
+}
+function introText(id){
+  if(id==="tra-cuu") return "Đây là khởi đầu của kênh #tra-cứu-tiện-ích. Hỏi bằng lệnh <b>/tienich</b> hoặc nhắn tự nhiên — trợ lý sẽ truy tài liệu nội bộ và trả lời ngay. Nếu không có nguồn chính thức, trợ lý sẽ ghi rõ 'chưa xác minh' thay vì bịa.";
+  if(id==="lap-nhom") return "Đây là khởi đầu của kênh #lập-nhóm-thể-thao. Nhắn nhu cầu của bạn (VD: 'đá bóng chiều thứ 7') — trợ lý đề xuất tối đa 3 nhóm còn chỗ để ghép, hoặc giúp bạn tạo thẻ nhóm mới. MVP tập trung vào bóng đá.";
+  if(id==="hoi-dap") return "Kênh hỏi đáp chung. Bạn có thể tag trợ lý hoặc hỏi thẳng, câu về tiện ích sẽ được trả lời tự động.";
+  return "Kênh chào hỏi chung của học viên khóa AI. Hãy giới thiệu bản thân nhé!";
+}
+
+/* ---- render all messages for current channel ---- */
+function renderMessages(){
+  const c = CHANNELS[currentChannel];
+  document.getElementById("chanTitle").textContent = c.name;
+  document.getElementById("chanTopic").innerHTML = c.topic;
+  document.getElementById("composerInput").placeholder = `Nhắn #${c.name}  ·  gõ / để xem lệnh`;
+
+  let html = channelIntro(currentChannel);
+  const list = history[currentChannel];
+  list.forEach((m,i)=>{
+    const prev = list[i-1];
+    const grouped = prev && prev.authorKey===m.authorKey && prev.isBot===m.isBot && (m.t-prev.t)<4*60000;
+    html += renderMsg(m, grouped);
+  });
+  messagesEl.innerHTML = `<div class="msg-inner">${html}</div>`;
+  bindMessageActions();
+  scrollBottom();
+}
+
+function avatarHTML(m){
+  if(m.isBot){
+    return `<div class="avatar gen" style="background:var(--brand)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a2 2 0 012 2v1h3a2 2 0 012 2v3h1a1 1 0 010 2h-1v3a2 2 0 01-2 2h-3v1a2 2 0 01-4 0v-1H7a2 2 0 01-2-2v-3H4a1 1 0 010-2h1V7a2 2 0 012-2h3V4a2 2 0 012-2zM9 11a1.2 1.2 0 100 2.4A1.2 1.2 0 009 11zm6 0a1.2 1.2 0 100 2.4A1.2 1.2 0 0015 11z"/></svg>
+    </div>`;
+  }
+  if(m.authorKey==="me"){
+    return `<div class="avatar gen" style="background:${ME.grad}">${ME.init}</div>`;
+  }
+  const a = AVATARS[m.authorKey]||{init:"?",bg:"#555"};
+  return `<div class="avatar gen" style="background:${a.bg}">${a.init}</div>`;
+}
+
+function renderMsg(m, grouped){
+  const time = fmtTime(m.t);
+  const botTag = m.isBot ? `<span class="bot-tag"><svg viewBox="0 0 16 16" fill="#fff"><path d="M7.4 1.3a1 1 0 011.2 0l5 3.6c.3.2.4.5.4.8v4.6c0 .3-.1.6-.4.8l-5 3.6a1 1 0 01-1.2 0l-5-3.6a1 1 0 01-.4-.8V5.7c0-.3.1-.6.4-.8l5-3.6z"/></svg>APP</span>` : "";
+  const authorColor = m.isBot ? "#c9cdfb" : (m.authorKey==="me" ? "#f0b232" : (m.color||"#f2f3f5"));
+  const head = grouped ? "" :
+    `<div class="head">
+      <span class="author" style="color:${authorColor}">${esc(m.author)}</span>${botTag}
+      <span class="ts">${time}</span>
+    </div>`;
+  const body = m.embed ? renderEmbed(m.embed) : "";
+  const reactions = m.reactions ? renderReactions(m.reactions) : "";
+  return `<div class="msg ${grouped?"grouped":"first"}" data-mid="${m.id}">
+    ${grouped?`<span class="timestamp-hover">${time}</span>`:avatarHTML(m)}
+    <div class="body">
+      ${head}
+      ${m.text?`<div class="text">${m.text}</div>`:""}
+      ${body}
+      ${reactions}
+    </div>
+    <div class="toolbar">
+      <button title="Thả cảm xúc">😊</button>
+      <button title="Trả lời"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4c5 0 8 1.5 10 5-1-6-4-9-10-11z"/></svg></button>
+      <button title="Thêm">⋯</button>
+    </div>
+  </div>`;
+}
+
+function renderEmbed(e){
+  const fields = (e.fields||[]).map(f=>`
+    <div class="field ${f.full?"full":""}">
+      <div class="fn">${f.n}</div>
+      <div class="fv">${f.v}</div>
+    </div>`).join("");
+  const footer = e.footer ? `<div class="e-footer">${e.footer}</div>` : "";
+  const thumb = e.thumb ? `<div class="e-thumb">${e.thumb}</div>` : "";
+  return `<div class="embed ${e.accent||""}">
+    <div class="embed-main">
+      ${e.provider?`<div class="provider">${e.provider}</div>`:""}
+      <div class="e-title">${e.title}</div>
+      ${e.desc?`<div class="e-desc">${e.desc}</div>`:""}
+      ${fields?`<div class="fields">${fields}</div>`:""}
+    </div>
+    ${thumb}
+    ${footer}
+  </div>`;
+}
+
+function renderReactions(rs){
+  return `<div class="reactions">${rs.map(r=>`<div class="reaction">${r.e}<span class="cnt">${r.n}</span></div>`).join("")}</div>`;
+}
+
+/* team card as a special embed */
+function renderTeamEmbed(t){
+  const filled = t.members.length;
+  const pct = Math.min(100, Math.round(filled/t.cap*100));
+  const isFull = filled>=t.cap;
+  const joined = t.members.includes(ME.name);
+  const stack = t.memberKeys.slice(0,5).map((k,i)=>{
+    const a = k==="me"?{init:ME.init,bg:ME.grad}:(AVATARS[k]||{init:"?",bg:"#555"});
+    return `<div class="a" style="background:${a.bg}">${a.init}</div>`;
+  }).join("");
+  const more = filled>5?`<div class="a more">+${filled-5}</div>`:"";
+  const badge = t.verified
+    ? `<span class="verified">✔ Sân đã xác minh</span>`
+    : `<span class="unverified">⚠ Sân chưa xác minh</span>`;
+  let btn;
+  if(joined) btn = `<button class="btn joined" disabled>✔ Đã tham gia</button>`;
+  else if(isFull) btn = `<button class="btn btn-sec" disabled>Đã đủ người</button>`;
+  else btn = `<button class="btn btn-green" data-join="${t.id}">Tham gia (+1)</button>`;
+
+  return `<div class="embed team-card ${isFull?"":""}" data-team="${t.id}">
+    <div class="embed-main">
+      <div class="provider">${t.emoji} ${t.sport} · tổ chức bởi <b style="color:var(--text)">${esc(t.host)}</b></div>
+      <div class="e-title">${esc(t.name)}</div>
+      <div class="fields">
+        <div class="field"><div class="fn">Thời gian</div><div class="fv"><b>${t.day}, ${t.time}</b></div></div>
+        <div class="field"><div class="fn">Trình độ</div><div class="fv">${t.level}</div></div>
+        <div class="field"><div class="fn">Sân</div><div class="fv">${esc(t.field)}</div></div>
+        <div class="field"><div class="fn">Tình trạng sân</div><div class="fv">${badge}</div></div>
+      </div>
+      <div class="roster">
+        <div class="rlabel"><span class="cur">${filled}/${t.cap} người</span><span class="cap">${isFull?"Đã đủ đội":`còn ${t.cap-filled} chỗ`}</span></div>
+        <div class="bar"><div class="fill ${isFull?"full":""}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="avatar-stack">${stack}${more}</div>
+    </div>
+    <div class="card-actions">
+      ${btn}
+      <button class="btn btn-ghost" data-roster="${t.id}">Xem danh sách</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   MESSAGE HELPERS
+   ============================================================ */
+let midCounter = 1;
+function pushMsg(ch, m){
+  m.id = "m"+(midCounter++);
+  m.t = m.t||Date.now();
+  history[ch].push(m);
+  if(ch===currentChannel) renderMessages();
+}
+
+function fmtTime(t){
+  const d = new Date(t);
+  const h = d.getHours(), mn = String(d.getMinutes()).padStart(2,"0");
+  return `Hôm nay lúc ${String(h).padStart(2,"0")}:${mn}`;
+}
+function scrollBottom(){messagesEl.scrollTop = messagesEl.scrollHeight;}
+
+function bindMessageActions(){
+  messagesEl.querySelectorAll("[data-fill]").forEach(c=>c.onclick=()=>{
+    const inp=document.getElementById("composerInput"); inp.value=c.dataset.fill; inp.focus(); handleInputChange();
+  });
+  messagesEl.querySelectorAll("[data-send]").forEach(c=>c.onclick=()=>{
+    sendUserMessage(c.dataset.send);
+  });
+  messagesEl.querySelectorAll("[data-join]").forEach(b=>b.onclick=()=>joinTeam(b.dataset.join));
+  messagesEl.querySelectorAll("[data-roster]").forEach(b=>b.onclick=()=>showRoster(b.dataset.roster));
+}
+
+/* ============================================================
+   BOT ENGINE
+   ============================================================ */
+function showTyping(on){
+  typingEl.classList.toggle("show", on);
+  if(on) scrollBottom();
+}
+
+function botSay(ch, payload, delay=850){
+  showTyping(true);
+  setTimeout(()=>{
+    showTyping(false);
+    pushMsg(ch, Object.assign({author:"VinUni Assistant", authorKey:"bot", isBot:true}, payload));
+  }, delay);
+}
+
+/* find utility in KB */
+function findKB(q){
+  const s = q.toLowerCase();
+  let best=null, bestScore=0;
+  KB.forEach(item=>{
+    let score=0;
+    item.keys.forEach(k=>{ if(s.includes(k)) score += k.length; });
+    if(score>bestScore){bestScore=score; best=item;}
+  });
+  return bestScore>0 ? best : null;
+}
+
+function kbToEmbed(item){
+  const footer = item.verified
+    ? `<span class="verified">✔ Đã xác minh</span> · Nguồn: ${item.source}`
+    : `<span class="unverified">⚠ Chưa xác minh</span> · ${item.source}`;
+  return {
+    provider:`${item.icon} Tiện ích VinUni`,
+    accent:item.accent||"",
+    title:item.title,
+    desc:item.desc,
+    fields:item.fields,
+    thumb:item.icon,
+    footer:footer
+  };
+}
+
+/* intent: is this a sports request? */
+const SPORT_WORDS=["đá bóng","bóng đá","đá banh","cầu lông","bóng rổ","chạy bộ","giao lưu","lập nhóm","rủ","team","thể thao","kèo"];
+function isSportIntent(q){
+  const s=q.toLowerCase();
+  return SPORT_WORDS.some(w=>s.includes(w));
+}
+
+/* parse loose day/time from a sport request */
+function parseSport(q){
+  const s=q.toLowerCase();
+  let day=null,time=null,level=null;
+  const days={"thứ 2":"Thứ 2","thứ hai":"Thứ 2","thứ 3":"Thứ 3","thứ 4":"Thứ 4","thứ 5":"Thứ 5","thứ 6":"Thứ 6","thứ 7":"Thứ 7","thứ bảy":"Thứ 7","chủ nhật":"Chủ nhật","cn":"Chủ nhật","hôm nay":"Hôm nay","mai":"Ngày mai"};
+  for(const k in days){ if(s.includes(k)){day=days[k];break;} }
+  if(/chiều/.test(s)) time="chiều";
+  if(/sáng/.test(s)) time="sáng";
+  if(/tối/.test(s)) time="tối";
+  if(/vui/.test(s)) level="Vui là chính";
+  if(/trung bình|tb/.test(s)) level="Trung bình";
+  if(/khá|phong trào/.test(s)) level="Khá / phong trào";
+  return {day,time,level};
+}
+
+/* suggest up to 3 teams matching request */
+function suggestTeams(ch, q){
+  const {day} = parseSport(q);
+  const open = TEAMS.filter(t=>t.members.length<t.cap);
+  let ranked = open.slice();
+  if(day){
+    ranked.sort((a,b)=> (b.day===day?1:0)-(a.day===day?1:0));
+  }
+  const picks = ranked.slice(0,3);
+
+  showTyping(true);
+  setTimeout(()=>{
+    showTyping(false);
+    const dayTxt = day?` khung <b>${day}</b>`:"";
+    pushMsg(ch,{
+      author:"VinUni Assistant", authorKey:"bot", isBot:true,
+      text:`Mình đọc yêu cầu của bạn rồi 👀 — đây là <b>${picks.length} nhóm bóng đá còn chỗ</b>${dayTxt} phù hợp nhất. Bạn có thể <b>tham gia thẳng</b>, hoặc bấm <b>Tạo nhóm mới</b> nếu chưa ưng.`
+    });
+    picks.forEach((t,i)=>{
+      setTimeout(()=>{
+        pushMsg(ch,{author:"VinUni Assistant", authorKey:"bot", isBot:true, embed:{__team:t.id}});
+      }, 220*(i+1));
+    });
+    setTimeout(()=>{
+      pushMsg(ch,{author:"VinUni Assistant", authorKey:"bot", isBot:true, text:`<span style="color:var(--text-muted)">Không nhóm nào hợp giờ? </span>`, actionRow:"create"});
+    }, 220*(picks.length+1));
+  }, 900);
+}
+
+/* override renderEmbed for team placeholder */
+const _renderEmbed = renderEmbed;
+renderEmbed = function(e){
+  if(e && e.__team){
+    const t = TEAMS.find(x=>x.id===e.__team);
+    if(t) return renderTeamEmbed(t);
+  }
+  return _renderEmbed(e);
+};
+
+/* action row (create team button) — patch into renderMsg via reactions area */
+const _renderMsg = renderMsg;
+renderMsg = function(m, grouped){
+  let html = _renderMsg(m, grouped);
+  if(m.actionRow==="create"){
+    html = html.replace('</div>\n    <div class="toolbar">',
+      `<div class="card-actions" style="margin-top:8px"><button class="btn btn-green" id="inlineCreate">➕ Tạo nhóm mới</button><button class="btn btn-ghost" data-fill="/timnhom bóng đá">Xem tất cả nhóm</button></div></div>\n    <div class="toolbar">`);
+  }
+  return html;
+};
+
+/* ============================================================
+   COMMAND HANDLING
+   ============================================================ */
+function handleCommand(raw){
+  const ch = currentChannel;
+  const parts = raw.slice(1).trim().split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const arg = parts.slice(1).join(" ");
+
+  if(cmd==="tienich" || cmd==="hoi"){
+    if(!arg){ botSay(ch,{text:"Bạn muốn hỏi về tiện ích gì? VD: <code class='inline'>/tienich lò vi sóng</code>, <code class='inline'>/tienich chỗ lấy nước</code>."},500); return; }
+    answerUtility(ch, arg);
+  } else if(cmd==="timnhom"){
+    suggestTeams(ch, arg||"bóng đá");
+  } else if(cmd==="lapnhom"){
+    botSay(ch,{text:"Mở biểu mẫu tạo thẻ nhóm cho bạn nhé 👇"},400);
+    setTimeout(openTeamModal, 500);
+  } else if(cmd==="lich"){
+    const item = KB.find(k=>k.keys.includes("sân"));
+    botSay(ch,{text:"Khung giờ mở của sân thể thao:", embed:kbToEmbed(item)});
+  } else {
+    botSay(ch,{text:`Mình chưa có lệnh <code class='inline'>/${esc(cmd)}</code>. Gõ <b>/</b> để xem danh sách lệnh nhé.`},400);
+  }
+}
+
+function answerUtility(ch, q){
+  const item = findKB(q);
+  if(item){
+    botSay(ch,{embed:kbToEmbed(item)});
+  } else {
+    botSay(ch,{
+      text:`Mình chưa tìm thấy tài liệu nội bộ khớp với "<b>${esc(q)}</b>". <span class="unverified">⚠ Chưa xác minh</span> — mình không đoán bừa. Bạn thử từ khóa cụ thể hơn (lò vi sóng, nước, sân bóng, thư viện, thẻ SV...) hoặc hỏi Phòng CTSV nhé.`
+    });
+  }
+}
+
+/* ============================================================
+   SEND MESSAGE
+   ============================================================ */
+function sendUserMessage(text){
+  text = text.trim();
+  if(!text) return;
+  const ch = currentChannel;
+
+  // render user message
+  pushMsg(ch,{author:ME.name, authorKey:"me", text:esc(text).replace(/\n/g,"<br>")});
+
+  // slash command?
+  if(text.startsWith("/")){
+    handleCommand(text);
+    return;
+  }
+
+  // sports intent?
+  if(isSportIntent(text) && (ch==="lap-nhom" || ch==="hoi-dap" || ch==="chung")){
+    suggestTeams(ch, text);
+    return;
+  }
+
+  // utility question?
+  const item = findKB(text);
+  if(item){
+    answerUtility(ch, text);
+    return;
+  }
+
+  // generic
+  if(ch==="tra-cuu" || ch==="hoi-dap"){
+    botSay(ch,{
+      text:`Mình chưa có tài liệu chắc chắn cho câu này nên không dám khẳng định. <span class="unverified">⚠ Chưa xác minh</span>. Thử hỏi cụ thể về: lò vi sóng, chỗ lấy nước, sân bóng/cầu lông, thư viện, thẻ SV, wifi, máy in, canteen, gửi xe.`
+    });
+  }
+}
+
+/* ============================================================
+   COMPOSER + SLASH AUTOCOMPLETE
+   ============================================================ */
+const input = document.getElementById("composerInput");
+const slashPop = document.getElementById("slashPop");
+const slashList = document.getElementById("slashList");
+let slashSel = 0, slashVisible=false, filteredCmds=[];
+
+function autoGrow(){
+  input.style.height="auto";
+  input.style.height = Math.min(input.scrollHeight, 200)+"px";
+}
+
+function handleInputChange(){
+  autoGrow();
+  const v = input.value;
+  if(v.startsWith("/") && !v.includes(" ")){
+    const q = v.slice(1).toLowerCase();
+    filteredCmds = COMMANDS.filter(c=>c.name.startsWith(q));
+    if(filteredCmds.length){ showSlash(); } else hideSlash();
+  } else {
+    hideSlash();
+  }
+}
+
+function showSlash(){
+  slashVisible=true; slashSel=0;
+  slashList.innerHTML = filteredCmds.map((c,i)=>`
+    <div class="slash-item ${i===0?"sel":""}" data-i="${i}">
+      <div class="sico">${c.icon}</div>
+      <div class="sbody">
+        <div class="sname">/${c.name} <span class="arg">${c.arg}</span></div>
+        <div class="sdesc">${c.desc}</div>
+      </div>
+    </div>`).join("");
+  slashPop.classList.add("show");
+  slashList.querySelectorAll(".slash-item").forEach(it=>{
+    it.onclick=()=>pickSlash(parseInt(it.dataset.i));
+  });
+}
+function hideSlash(){slashVisible=false; slashPop.classList.remove("show");}
+function pickSlash(i){
+  const c = filteredCmds[i];
+  input.value = "/"+c.name+" ";
+  hideSlash();
+  input.focus();
+  if(c.name==="lapnhom"){ input.value=""; openTeamModal(); }
+}
+function moveSlash(d){
+  slashSel = (slashSel+d+filteredCmds.length)%filteredCmds.length;
+  slashList.querySelectorAll(".slash-item").forEach((it,i)=>it.classList.toggle("sel", i===slashSel));
+}
+
+input.addEventListener("input", handleInputChange);
+input.addEventListener("keydown", e=>{
+  if(slashVisible){
+    if(e.key==="ArrowDown"){e.preventDefault();moveSlash(1);return;}
+    if(e.key==="ArrowUp"){e.preventDefault();moveSlash(-1);return;}
+    if(e.key==="Tab"||(e.key==="Enter")){e.preventDefault();pickSlash(slashSel);return;}
+    if(e.key==="Escape"){hideSlash();return;}
+  }
+  if(e.key==="Enter" && !e.shiftKey){
+    e.preventDefault();
+    const val = input.value;
+    input.value=""; autoGrow(); hideSlash();
+    sendUserMessage(val);
+  }
+});
+document.getElementById("sendBtn").onclick=()=>{
+  const val=input.value; input.value=""; autoGrow(); hideSlash(); sendUserMessage(val);
+};
+
+/* ============================================================
+   TEAM: JOIN / ROSTER / CREATE
+   ============================================================ */
+function joinTeam(id){
+  const t = TEAMS.find(x=>x.id===id);
+  if(!t || t.members.includes(ME.name) || t.members.length>=t.cap) return;
+  t.members.push(ME.name); t.memberKeys.push("me");
+  renderMessages();
+  toast(`Đã ghép bạn vào "${t.name}" — ${t.members.length}/${t.cap} người`, "green");
+  // bot confirmation
+  const full = t.members.length>=t.cap;
+  botSay(currentChannel,{
+    text:`✅ <b>${ME.name}</b> đã tham gia <b>${esc(t.name)}</b> (${t.members.length}/${t.cap}). ${full?"<b style='color:var(--green)'>Đủ đội rồi</b> — mình chốt danh sách và nhắc mọi người nhé!":`Còn <b>${t.cap-t.members.length}</b> chỗ.`} ${t.verified?"":"<span class='unverified'>⚠ Sân chưa xác minh</span> — bạn nhớ xác nhận sân với Phòng CTSV trước giờ chơi."}`
+  }, 600);
+}
+
+function showRoster(id){
+  const t = TEAMS.find(x=>x.id===id);
+  if(!t) return;
+  const list = t.members.map((n,i)=>`${i+1}. ${esc(n)}${n===t.host?" <span style='color:var(--yellow)'>(chủ nhóm)</span>":""}`).join("<br>");
+  botSay(currentChannel,{
+    text:`📋 <b>Danh sách "${esc(t.name)}"</b> — ${t.members.length}/${t.cap}<br>${list}`,
+    reactions:[{e:"⚽",n:t.members.length}]
+  }, 400);
+}
+
+/* modal */
+const teamModal = document.getElementById("teamModal");
+function openTeamModal(){ teamModal.classList.add("show"); }
+function closeTeamModal(){ teamModal.classList.remove("show"); }
+document.getElementById("closeTeam").onclick=closeTeamModal;
+document.getElementById("cancelTeam").onclick=closeTeamModal;
+teamModal.onclick=e=>{ if(e.target===teamModal) closeTeamModal(); };
+
+/* segmented controls */
+function bindSeg(id){
+  const seg=document.getElementById(id);
+  seg.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+  });
+}
+bindSeg("segSport"); bindSeg("segLevel");
+function segVal(id){ return document.getElementById(id).querySelector("button.on").dataset.v; }
+
+const SPORT_EMOJI={"Bóng đá":"⚽","Cầu lông":"🏸","Bóng rổ":"🏀","Chạy bộ":"🏃"};
+
+document.getElementById("submitTeam").onclick=()=>{
+  const name = document.getElementById("teamName").value.trim();
+  if(!name){ toast("Nhập tên/mô tả nhóm giúp mình nhé","warn"); document.getElementById("teamName").focus(); return; }
+  const sport=segVal("segSport");
+  const t = {
+    id:"t"+(TEAMS.length+1)+"_"+Date.now(),
+    sport, emoji:SPORT_EMOJI[sport]||"⚽", name,
+    host:ME.name, hostKey:"me",
+    day:document.getElementById("teamDay").value,
+    time:document.getElementById("teamTime").value,
+    level:segVal("segLevel"),
+    field:document.getElementById("teamField").value.trim()||"Sân trường VinUni",
+    verified:document.getElementById("teamVerified").checked,
+    cap:parseInt(document.getElementById("teamCap").value),
+    members:[ME.name], memberKeys:["me"]
+  };
+  TEAMS.unshift(t);
+  closeTeamModal();
+
+  // if not in lap-nhom channel, switch there to show the card
+  if(currentChannel!=="lap-nhom"){ switchChannel("lap-nhom"); }
+  pushMsg("lap-nhom",{author:ME.name, authorKey:"me", text:`Vừa tạo nhóm mới: <b>${esc(name)}</b> 🎉`});
+  botSay("lap-nhom",{
+    text:`🎉 Đã đăng thẻ nhóm của bạn vào kênh! Mọi người bấm <b>Tham gia</b> là vào thẳng danh sách, không cần lùng bình luận nữa. ${t.verified?"<span class='verified'>✔ Sân đã xác minh</span>":"<span class='unverified'>⚠ Sân chưa xác minh</span> — mình chưa tuyên bố đã đặt sân, bạn xác nhận với Phòng CTSV rồi cập nhật sau nhé."}`,
+    embed:{__team:t.id}
+  }, 650);
+
+  // reset form
+  document.getElementById("teamName").value="";
+  document.getElementById("teamVerified").checked=false;
+  toast("Đã đăng thẻ nhóm vào #lập-nhóm-thể-thao","green");
+};
+
+/* inline create button (delegated) */
+document.addEventListener("click", e=>{
+  if(e.target && e.target.id==="inlineCreate") openTeamModal();
+});
+
+/* ============================================================
+   MEMBER LIST
+   ============================================================ */
+const MEMBERS=[
+  {group:"TRỢ LÝ", items:[
+    {name:"VinUni Assistant", init:"AI", bg:"var(--brand)", status:"on", bot:true, role:"role-bot"}
+  ]},
+  {group:"COACH — 3", items:[
+    {name:"Cao Quảng Bình", init:"CB", bg:"linear-gradient(145deg,#f0b232,#23a55a)", status:"on", crown:true},
+    {name:"Lê Ngô Thanh Toàn", init:"LT", bg:"linear-gradient(145deg,#23a55a,#1e88e5)", status:"on"},
+    {name:"Phạm Văn Ngoan", init:"PN", bg:"linear-gradient(145deg,#00a8fc,#23a55a)", status:"idle"},
+  ]},
+  {group:"HỌC VIÊN — 5", items:[
+    {name:"Hoàng Minh", init:"HM", bg:"linear-gradient(145deg,#eb459e,#f0b232)", status:"on", me:true},
+    {name:"Vũ Thành Dương", init:"VD", bg:"linear-gradient(145deg,#f0b232,#f23f43)", status:"on"},
+    {name:"Nguyễn Thành Vinh", init:"NV", bg:"linear-gradient(145deg,#5865f2,#eb459e)", status:"dnd"},
+    {name:"Hà Lan", init:"HL", bg:"linear-gradient(145deg,#eb459e,#7c3aed)", status:"idle"},
+    {name:"Nguyễn Hoài Nam", init:"NN", bg:"linear-gradient(145deg,#1e88e5,#23a55a)", status:"offl", off:true},
+  ]},
+];
+function renderMembers(){
+  const el=document.getElementById("memberList");
+  el.innerHTML = MEMBERS.map(g=>`
+    <div class="mgroup">${g.group}</div>
+    ${g.items.map(m=>`
+      <div class="member ${m.off?"off":""}">
+        <div class="mav" style="background:${m.bg}">${m.init}<span class="mdot ${m.status}"></span></div>
+        <div class="mname ${m.role||""}">
+          ${m.crown?'<span class="crown">♛</span>':""}${esc(m.name)}
+          ${m.bot?'<span class="mini-bot">APP</span>':""}
+        </div>
+      </div>`).join("")}
+  `).join("");
+}
+
+/* ============================================================
+   CHANNEL SWITCH
+   ============================================================ */
+function switchChannel(id){
+  if(!CHANNELS[id]) return;
+  currentChannel=id;
+  renderChannels();
+  renderMessages();
+  input.value=""; autoGrow(); hideSlash();
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer;
+function toast(msg, type=""){
+  const t=document.getElementById("toast");
+  document.getElementById("toastMsg").innerHTML=msg;
+  t.className="toast show "+(type==="green"?"":type);
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),3200);
+}
+
+/* member toggle */
+document.getElementById("toggleMembers").onclick=function(){
+  document.getElementById("memberList").classList.toggle("hidden");
+  this.classList.toggle("on");
+};
+
+/* ============================================================
+   SEED CONTENT
+   ============================================================ */
+function seed(){
+  const now = Date.now();
+  // #chung
+  history.chung.push(
+    {id:"s1",author:"Vũ Thành Dương",authorKey:"duong",text:"Chào cả nhà 👋 mình mới join khóa AI, hóng làm quen mọi người!",t:now-3600000},
+    {id:"s2",author:"Hà Lan",authorKey:"lan",text:"Chào Dương! Có gì về tiện ích trường cứ hỏi trợ lý ở <span class='mention'>#tra-cứu-tiện-ích</span> nha, tiện lắm.",t:now-3500000},
+  );
+  // #tra-cuu — a demo Q&A already there
+  history["tra-cuu"].push(
+    {id:"u1",author:"Phạm Văn Ngoan",authorKey:"ngoan",text:"/tienich lò vi sóng",t:now-1800000},
+    {id:"u2",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:kbToEmbed(KB[0]),t:now-1795000,
+      reactions:[{e:"👍",n:3},{e:"🔥",n:1}]},
+  );
+  // #lap-nhom — existing team cards
+  history["lap-nhom"].push(
+    {id:"l0",author:"VinUni Assistant",authorKey:"bot",isBot:true,
+      text:"Chào mừng tới kênh lập nhóm ⚽ Nhắn nhu cầu của bạn hoặc dùng <code class='inline'>/timnhom</code> để xem nhóm còn chỗ. Dưới đây là các nhóm đang mở:",t:now-2400000},
+    {id:"l1",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:{__team:"t1"},t:now-2399000},
+    {id:"l2",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:{__team:"t2"},t:now-2398000},
+    {id:"l3",author:"VinUni Assistant",authorKey:"bot",isBot:true,embed:{__team:"t3"},t:now-2397000},
+  );
+  // #hoi-dap
+  history["hoi-dap"].push(
+    {id:"h1",author:"Nguyễn Thành Vinh",authorKey:"vinh",text:"Mọi người ơi wifi trường đăng nhập kiểu gì thế?",t:now-1200000},
+  );
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+seed();
+renderChannels();
+renderMembers();
+renderMessages();
+autoGrow();
+input.focus();
+
+// welcome toast
+setTimeout(()=>toast("Mẹo: gõ <b>/</b> trong ô chat để xem lệnh, hoặc hỏi tự nhiên như 'sân bóng mở mấy giờ?'","brand"),700);
+</script>
+</body>
+</html>
