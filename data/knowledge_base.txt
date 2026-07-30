@@ -2,6 +2,7 @@
 - Căn tin VinUni mở cửa từ 7h00 đến 19h00 hàng ngày (cả Thứ 7 và Chủ nhật).
 - Căn tin có trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm ở góc trái gần cửa ra vào.
 - Giá cơm trưa dao động từ 25.000đ đến 45.000đ.
+- Có thể mua vé tháng với giá 800.000đ với 50 lần ăn, có thể cho bạn khác sử dụng.
 - Căn tin có bán nước đóng chai, cà phê, trà sữa.
 - Khu vực ăn uống có wifi miễn phí, mật khẩu hỏi tại quầy thu ngân.
 
@@ -12,6 +13,14 @@
 - Nếu thẻ từ không vào được thư viện, vui lòng liên hệ quầy IT Support ở tầng 1 toà G, mở cửa từ 8h00-17h00.
 - Thư viện có 3 tầng: Tầng 1 là khu vực đọc sách, Tầng 2 là phòng học nhóm, Tầng 3 là khu yên tĩnh.
 - Có thể mượn sách tối đa 5 cuốn trong 14 ngày.
+
+# === PHÒNG HỌC 24/7 (24/7 STUDY ROOMS) ===
+- Vị trí các phòng học 24/7: Phòng A101 (Tầng 1 Tòa A) và Phòng D102 (Tầng 1 Tòa D1).
+- Giờ mở cửa: Hoạt động 24/7 (24 giờ mỗi ngày, 7 ngày trong tuần, bao gồm cả ngày lễ và cuối tuần).
+- Cách truy cập: Cần quẹt thẻ từ học viên VinUni để mở cửa tự động vào ban đêm (từ 21h00 đến 6h00 sáng hôm sau).
+- Trang thiết bị: Có điều hòa, wifi tốc độ cao, ổ cắm điện tại từng bàn, bảng trắng tự do thảo luận nhóm và cây nước nóng lạnh.
+- Máy bán nước tự động & snack: Được trang bị ngay hành lang bên ngoài phòng A101 và D102.
+- Quy định chung: Giữ trật tự yên tĩnh sau 22h00, không mang đồ ăn có mùi mạnh vào phòng, tự dọn dẹp rác cá nhân trước khi rời đi.
 
 # === THỂ THAO (SPORTS) ===
 - Sân bóng đá nội khu mở cửa từ 6h00 đến 22h00 hàng ngày.
@@ -27,3 +36,93 @@
 - Email hỗ trợ chung: support@vinuni.edu.vn
 - Số điện thoại bảo vệ (24/7): 0123-456-789.
 - Mentor/TA có thể liên hệ qua kênh Discord #hoi-mentor.
+
+# === BẢN ĐỒ & VỊ TRÍ TÒA NHÀ (CAMPUS MAP) ===
+- Quy tắc đọc mã phòng: <Tên Tòa><Số Tầng><Số Phòng> (Ví dụ: C401 hay C 4 01 là Tòa C - Tầng 4 - Phòng 01).
+- Cổng chính: Cổng Đại Lộ (nằm ở phía Nam, dẫn trực tiếp vào Quảng trường trung tâm).
+- Cổng phụ: Cổng San Hồ (nằm ở phía Bắc, gần Sân vận động và Ký túc xá).
+- Tòa A: Viện Kỹ thuật & Khoa học Máy tính.
+- Tòa B: Viện Khoa học Sức khỏe (Phòng 102 Tòa B là Ban quản lý thể thao).
+- Tòa C: Viện Kinh doanh Quản trị & Viện Khoa học và Giáo dục khai phóng.
+- Tòa G: Tòa nhà Trung tâm / Hiệu bộ (Có Thư viện, IT Support ở Tầng 1).
+- Tòa D1: Tòa Giảng đường.
+- Tòa E: Tòa nhà Nghiên cứu.
+- Tòa F: Trung tâm Thí nghiệm & Lab.
+- Tòa L: Sân vận động & Khán đài (Sân bóng đá nội khu).
+- Tòa M: Nhà thi đấu thể thao (Sân cầu lông trong nhà, Phòng Gym).
+- Tòa D (Ký túc xá): Khu Ký túc xá học viên (nằm phía Bắc gần Cổng San Hồ).
+- Bãi giữ xe: Nằm ở phía Tây (bên trái sơ đồ, cạnh Tòa A và Tòa D1).
+
+# === VỊ TRÍ TƯƠNG ĐỐI & HƯỚNG DẪN ĐI LẠI GIỮA CÁC TÒA ===
+- Bố cục tổng quan từ Bắc xuống Nam:
+  + Phía Bắc (Top): Cổng San Hồ, Tòa L (Sân vận động/Sân bóng), Tòa M (Nhà thi đấu/Gym), Tòa D (Ký túc xá).
+  + Phía Trung tâm (Mid): Cụm tòa học thuật & hiệu bộ.
+    * Phía Tây (Bên trái): Bãi giữ xe, Tòa A (trên), Tòa D1 (dưới).
+    * Ở Giữa: Tòa C (trên), Tòa G - Thư viện/Hiệu bộ (dưới).
+    * Phía Đông (Bên phải): Tòa B (trên), Tòa E (dưới), Tòa F (Đông-Nam).
+  + Phía Nam (Bottom): Quảng trường trung tâm & Cổng Đại Lộ (Cổng chính).
+
+- Hướng dẫn di chuyển giữa các tòa:
+  + Từ Tòa A đi Tòa D (Ký túc xá): Đi từ Tòa A về hướng Bắc (hướng ra Cổng San Hồ), đi qua trục đường chính nối cụm học thuật lên cụm phía Bắc. Tòa D nằm ở phía Bắc bên cạnh Tòa M (Nhà thi đấu).
+  + Từ Tòa A đi Tòa B: Đi thẳng theo trục ngang về phía Đông (sang bên phải), đi qua Tòa C ở giữa là tới Tòa B.
+  + Từ Tòa A đi Tòa G (Thư viện / IT Support): Đi xuống phía Nam (hướng Tòa D1) rồi rẽ sang phải (phía Đông) vào Tòa G nằm ở vị trí trung tâm.
+  + Từ Cụm Học thuật (Tòa A, B, C, G) đi Khu thể thao (Tòa L, M): Đi ngược về phía Bắc. Tòa L (Sân bóng đá) nằm bên trái, Tòa M (Sân cầu lông/Gym) nằm bên phải.
+  + Từ Cổng chính (Cổng Đại Lộ) đến Thư viện (Tòa G): Đi thẳng qua Quảng trường trung tâm về phía Bắc, Tòa G là tòa đầu tiên ở cụm trung tâm.
+  + Từ Bãi giữ xe đi các Tòa học thuật: Bãi giữ xe nằm ở phía Tây, ngay sát bên cạnh Tòa A và Tòa D1.
+
+# === SƠ ĐỒ ĐỒ THỊ DI CHUYỂN GIỮA CÁC TÒA (MERMAID GRAPH) ===
+```mermaid
+graph TD
+    subgraph PHIA_BAC["🔴 Cụm Phía Bắc (Gần Cổng San Hồ)"]
+        SanHo["🚪 Cổng San Hồ"]
+        ToaL["⚽ Tòa L (Sân bóng đá)"]
+        ToaM["🏸 Tòa M (Nhà thi đấu / Gym)"]
+        ToaD["🏢 Tòa D (Ký túc xá)"]
+    end
+
+    subgraph CUM_TRUNG_TAM["🔵 Cụm Học thuật & Hành chính"]
+        subgraph TAY["Phía Tây"]
+            Parking["🅿️ Bãi giữ xe"]
+            ToaA["💻 Tòa A (Viện CNTT)"]
+            ToaD1["📚 Tòa D1 (Giảng đường)"]
+        end
+
+        subgraph GIUA["Ở Giữa"]
+            ToaC["💼 Tòa C (Viện QTKD)"]
+            ToaG["📖 Tòa G (Thư viện / IT Support)"]
+        end
+
+        subgraph DONG["Phía Đông"]
+            ToaB["🏥 Tòa B (Viện Y học / BQL Thể thao)"]
+            ToaE["🔬 Tòa E (Tòa Nghiên cứu)"]
+            ToaF["🧪 Tòa F (Lab Thí nghiệm)"]
+        end
+    end
+
+    subgraph PHIA_NAM["🟢 Cụm Phía Nam"]
+        QuangTruong["⛲ Quảng trường trung tâm"]
+        CongDaiLo["🚪 Cổng Đại Lộ (Cổng chính)"]
+    end
+
+    %% Liên kết di chuyển các cụm
+    CongDaiLo -->|Bắc| QuangTruong
+    QuangTruong -->|Bắc| ToaG
+    ToaG -->|Bắc| ToaC
+    
+    %% Trục ngang Cụm Học thuật
+    ToaA -->|Đông| ToaC
+    ToaC -->|Đông| ToaB
+    Parking -->|Đông| ToaA
+    Parking -->|Đông| ToaD1
+
+    %% Trục dọc Cụm Học thuật
+    ToaA -->|Nam| ToaD1
+    ToaC -->|Nam| ToaG
+    ToaB -->|Nam| ToaE
+    ToaE -->|Đông Nam| ToaF
+
+    %% Nối từ Cụm Học thuật lên Cụm Phía Bắc
+    ToaA -->|Bắc| ToaL
+    ToaC -->|Bắc| ToaM
+    ToaB -->|Bắc| ToaD
+```
