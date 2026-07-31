@@ -14,6 +14,7 @@ thật — xem llm_handler.py.
 """
 import re
 import unicodedata
+from datetime import datetime, timedelta
 
 # ============================================================
 # ③ NGOÀI PHẠM VI — 4 nhóm riêng vì câu trả lời kỳ vọng khác nhau
@@ -97,15 +98,37 @@ def _canonical_period(hour: int) -> str:
 
 def extract_hour(text: str):
     """Trả về giờ (int 0-23) nếu tìm thấy mốc giờ tường minh trong câu, else None."""
+    h, _ = extract_hour_minute(text)
+    return h
+
+
+def extract_hour_minute(text: str):
+    """
+    Trả về (giờ, phút) nếu tìm thấy mốc giờ tường minh trong câu, else
+    (None, None). Khác extract_hour() ở chỗ KHÔNG bỏ qua phút — "12h43" phải
+    ra (12, 43) chứ không phải (12, 0), nếu không các phép tính khoảng cách
+    thời gian chính xác (vd khoá rời trận trước giờ bắt đầu) sẽ sai lệch.
+    """
     m = _HOUR_RE.search(text)
     if not m:
-        return None
-    raw = m.group(1) or m.group(3)
+        return None, None
+    raw_h = m.group(1) or m.group(3)
+    raw_m = m.group(2) if m.group(1) else None
     try:
-        h = int(raw)
+        h = int(raw_h)
     except (TypeError, ValueError):
-        return None
-    return h if 0 <= h <= 23 else None
+        return None, None
+    if not (0 <= h <= 23):
+        return None, None
+    minute = 0
+    if raw_m:
+        try:
+            minute = int(raw_m)
+        except ValueError:
+            minute = 0
+        if not (0 <= minute <= 59):
+            minute = 0
+    return h, minute
 
 
 def find_period_word(text: str):
@@ -163,6 +186,54 @@ def check_sport_ambiguity(text: str):
         "kind": "missing_all",
         "message": "Bạn muốn đá **ngày nào, giờ nào**, và ở **sân nào** để mình lên lịch giúp — xác nhận giúp mình nhé?",
     }
+
+
+# ============================================================
+# GIẢI MÃ NGÀY/GIỜ TỰ DO → datetime thật
+# Dùng để tính "còn bao lâu nữa trận bắt đầu" (khoá rời trận 1 tiếng trước
+# giờ, xem match_manager.leave_match) — đoán tốt nhất có thể từ chuỗi tự do
+# người tạo trận đã gõ, KHÔNG phải lịch thật nên có giới hạn khi câu quá mơ hồ.
+# ============================================================
+_WEEKDAY_MAP = {
+    "chủ nhật": 6, "cn": 6,
+    "thứ 2": 0, "thứ hai": 0,
+    "thứ 3": 1, "thứ ba": 1,
+    "thứ 4": 2, "thứ tư": 2,
+    "thứ 5": 3, "thứ năm": 3,
+    "thứ 6": 4, "thứ sáu": 4,
+    "thứ 7": 5, "thứ bảy": 5,
+}
+
+
+def resolve_match_date(text: str, now: datetime = None) -> "datetime.date":
+    """Đoán NGÀY (không phải giờ) từ chuỗi tự do — mặc định hôm nay nếu
+    không thấy từ khoá ngày nào (đa số trận ghi giờ trong ngày, không ghi
+    ngày rõ vì ngầm hiểu là hôm nay)."""
+    now = now or datetime.now()
+    s = _norm(text)
+    if re.search(r"\bmai\b", s):
+        return (now + timedelta(days=1)).date()
+    for label, weekday in _WEEKDAY_MAP.items():
+        if label in s:
+            days_ahead = (weekday - now.weekday()) % 7
+            days_ahead = days_ahead or 7  # nếu trùng thứ hôm nay, hiểu là tuần sau
+            return (now + timedelta(days=days_ahead)).date()
+    return now.date()
+
+
+def resolve_match_datetime(time_text: str, now: datetime = None):
+    """
+    Ghép ngày (resolve_match_date) + giờ (extract_hour) từ chuỗi thời gian
+    tự do của 1 trận đấu (vd "17h", "5h chiều nay", "mai 9h") thành 1
+    datetime thật. Trả về None nếu không đoán được giờ tường minh (không đủ
+    cơ sở để tính, không suy diễn bừa).
+    """
+    hour, minute = extract_hour_minute(time_text)
+    if hour is None:
+        return None
+    now = now or datetime.now()
+    date_part = resolve_match_date(time_text, now=now)
+    return datetime.combine(date_part, datetime.min.time()).replace(hour=hour, minute=minute)
 
 
 def classify(text: str) -> dict:
