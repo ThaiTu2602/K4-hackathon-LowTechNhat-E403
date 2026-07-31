@@ -106,7 +106,12 @@ async def on_message(message):
                 match_manager.save()
             if match_manager.is_match_full(mid):
                 await message.channel.send(
-                    f"🎉 <@{match['creator_id']}> ơi, trận **{match['sport']}** đã đủ người! Bạn có muốn chốt kèo không?"
+                    f"🎉 <@{match['creator_id']}> ơi, trận **{match['sport']}** đã đầy ({match['target_players']}/{match['target_players']})! Bạn có muốn chốt kèo không?"
+                )
+            elif match_manager.is_match_ready(mid):
+                await message.channel.send(
+                    f"✅ <@{match['creator_id']}> ơi, trận **{match['sport']}** đã đủ người tối thiểu để chơi rồi "
+                    f"({len(match['players'])}/{match['target_players']}), vẫn còn nhận thêm nếu ai muốn vào nhé!"
                 )
 
 
@@ -166,10 +171,14 @@ async def join(interaction: discord.Interaction, id_trận: str):
         await interaction.followup.send(embed=embed)
 
         # Kiểm tra đã đủ người -> ping người tạo
+        creator_id = match_manager.active_matches[id_trận]["creator_id"]
         if match_manager.is_match_full(id_trận):
-            creator_id = match_manager.active_matches[id_trận]["creator_id"]
             await interaction.followup.send(
-                f"🎉 <@{creator_id}> ơi, trận đã **đủ người**! Bạn có muốn chốt kèo không?"
+                f"🎉 <@{creator_id}> ơi, trận đã **đầy**! Bạn có muốn chốt kèo không?"
+            )
+        elif match_manager.is_match_ready(id_trận):
+            await interaction.followup.send(
+                f"✅ <@{creator_id}> ơi, trận đã **đủ người tối thiểu để chơi**, vẫn còn nhận thêm nếu ai muốn vào nhé!"
             )
 
 
