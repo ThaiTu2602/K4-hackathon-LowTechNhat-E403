@@ -1,11 +1,16 @@
 import discord
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Import config từ file tools.py (tập trung cấu hình)
-from tools import DEFAULT_SLOTS, SPORT_EMOJI_MAP, DEFAULT_SPORT_STYLE
+from tools import DEFAULT_SLOTS, SPORT_EMOJI_MAP, DEFAULT_SPORT_STYLE, get_min_players
+from router import resolve_match_datetime
+
+# Trong vòng bao lâu trước giờ bắt đầu thì khoá, không cho rời trận nữa —
+# tránh vỡ kèo phút chót (yêu cầu vận hành thật của nhóm).
+LEAVE_LOCK_MINUTES_BEFORE_START = 60
 
 # ============================================================
 # FILE: match_manager.py
@@ -91,7 +96,8 @@ class MatchManager:
         (xem find_nearest_match trong tools.py). Không có thì mặc định "chưa rõ".
         """
         match_id = str(uuid.uuid4())[:8]  # ID ngắn gọn 8 ký tự
-        target_players = DEFAULT_SLOTS.get(sport.lower(), 10)
+        target_players = DEFAULT_SLOTS.get(sport.lower(), 10)  # sức chứa TỐI ĐA
+        min_players = get_min_players(sport)  # sức chứa TỐI THIỂU để "chơi được"
 
         self.active_matches[match_id] = {
             "sport": sport,
@@ -102,6 +108,7 @@ class MatchManager:
             "creator_id": creator_id,
             "players": {creator_id: creator_name},  # Dict {user_id: user_name}
             "target_players": target_players,
+            "min_players": min_players,
             "created_at": datetime.now().strftime("%H:%M %d/%m"),
             "created_at_iso": datetime.now().isoformat(),
             "message_id": None,  # Sẽ gán sau khi gửi embed lên Discord
@@ -142,6 +149,7 @@ class MatchManager:
             changes.append(f"🏅 {match['sport']} → **{new_sport}**")
             match["sport"] = new_sport
             match["target_players"] = DEFAULT_SLOTS.get(new_sport.lower(), match["target_players"])
+            match["min_players"] = get_min_players(new_sport)
 
         if not changes:
             return False, "⚠️ Không có gì để đổi cả — bạn muốn sửa giờ, sân hay môn?"
@@ -189,6 +197,18 @@ class MatchManager:
         if user_id == match["creator_id"]:
             return False, "⚠️ Bạn là người tạo trận, hãy dùng `/huy-tran` để huỷ."
 
+        # Khoá rời trận trong vòng 1 tiếng trước giờ bắt đầu — tránh vỡ kèo
+        # phút chót. Chỉ khoá khi đoán được giờ bắt đầu rõ ràng từ dữ liệu
+        # trận (không suy diễn nếu giờ ghi quá mơ hồ).
+        start_dt = resolve_match_datetime(match["time"])
+        if start_dt is not None:
+            minutes_left = (start_dt - datetime.now()).total_seconds() / 60
+            if 0 <= minutes_left <= LEAVE_LOCK_MINUTES_BEFORE_START:
+                return False, (
+                    f"⛔ Trận sắp bắt đầu trong vòng {LEAVE_LOCK_MINUTES_BEFORE_START} phút nữa "
+                    f"({match['time']}) — không thể rời lúc này để tránh vỡ kèo phút chót, bạn thông cảm nhé."
+                )
+
         was_full = len(match["players"]) >= match["target_players"]
         del match["players"][user_id]
         self._save()
@@ -215,13 +235,27 @@ class MatchManager:
         self._save()
         return True, "🗑️ Trận đã được huỷ thành công."
 
-    # ----- KIỂM TRA ĐỦ NGƯỜI -----
+    # ----- KIỂM TRA ĐỦ NGƯỜI (đầy hẳn, hết chỗ — dùng target_players/max) -----
     def is_match_full(self, match_id: str) -> bool:
-        """Kiểm tra trận đã đủ người chưa."""
+        """Kiểm tra trận đã đầy hẳn (đạt sức chứa TỐI ĐA) chưa."""
         if match_id not in self.active_matches:
             return False
         match = self.active_matches[match_id]
         return len(match["players"]) >= match["target_players"]
+
+    # ----- KIỂM TRA ĐỦ ĐỂ CHƠI ĐƯỢC (đạt sức chứa TỐI THIỂU, chưa cần đầy) -----
+    def is_match_ready(self, match_id: str) -> bool:
+        """
+        Kiểm tra trận đã đạt sức chứa TỐI THIỂU để mở được chưa (vd bóng đá
+        chỉ cần đủ 10/14 là đã đá được, không cần đợi đầy 14). Trận nào
+        không khai báo min_players riêng (dữ liệu cũ trước khi có field này)
+        thì coi min = max, tức phải đầy hẳn mới "ready".
+        """
+        if match_id not in self.active_matches:
+            return False
+        match = self.active_matches[match_id]
+        min_players = match.get("min_players", match["target_players"])
+        return len(match["players"]) >= min_players
 
     # ----- LẤY DANH SÁCH TRẬN ĐANG MỞ -----
     def get_active_matches(self) -> list[dict]:
