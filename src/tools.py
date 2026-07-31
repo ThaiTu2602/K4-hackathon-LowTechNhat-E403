@@ -1,12 +1,16 @@
 # ============================================================
 # FILE: tools.py
-# MỤC ĐÍCH: Tập trung TẤT CẢ cấu hình tool/function definitions
-#            và các hằng số dùng chung vào một nơi duy nhất.
-#            Khi cần thêm/sửa tool hoặc thay đổi config, chỉ cần mở file này.
+# MỤC ĐÍCH: Tập trung TẤT CẢ cấu hình + "tools" (công cụ) mà AI Agent
+#            (Gemini) được phép gọi vào một nơi duy nhất.
 # ============================================================
+from datetime import datetime
+from pathlib import Path
 
-# ---- Danh sách Intent hợp lệ ----
-# Dùng trong hàm classify_intent() ở llm_handler.py
+from router import extract_hour  # dùng lại logic đoán giờ tường minh trong câu
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ---- Danh sách Intent hợp lệ (dùng bởi classify_intent() — luồng cũ) ----
 VALID_INTENTS = ["qna", "create_match", "list_matches", "join_match", "other"]
 
 
@@ -19,8 +23,8 @@ DEFAULT_SLOTS = {
 }
 
 
-# ---- Schema mô tả tool trích xuất thông tin trận ----
-# Có thể dùng khi chuyển sang Gemini Function Calling chính thức
+# ---- Schema mô tả tool trích xuất thông tin trận (luồng cũ, extract_match_info) ----
+# Giữ lại để tương thích ngược — luồng mới dùng function-calling thật ở dưới.
 TOOL_EXTRACT_MATCH = {
     "name": "extract_match_info",
     "description": "Trích xuất thông tin mở trận thể thao từ tin nhắn người dùng.",
@@ -55,3 +59,287 @@ SPORT_EMOJI_MAP = {
 
 # Emoji và màu mặc định cho các môn khác
 DEFAULT_SPORT_STYLE = {"emoji": "🏅", "color": "purple"}
+
+
+# ============================================================
+# TOOLS MỚI CHO AGENT (Gemini function calling thật — package google-genai)
+# ============================================================
+# Cách hoạt động: mỗi hàm bên dưới là 1 "tool". Gemini tự đọc DOCSTRING +
+# kiểu dữ liệu tham số để hiểu KHI NÀO nên gọi hàm nào, gọi với tham số gì
+# (Automatic Function Calling — không cần tự viết JSON schema tay).
+#
+# ⚠️ QUY TẮC AN TOÀN QUAN TRỌNG NHẤT (đọc trước khi sửa gì trong file này):
+#   - Tool ĐỌC dữ liệu (search_knowledge_base, list_open_matches,
+#     find_nearest_match) — an toàn, agent được tự do gọi bao nhiêu lần
+#     cũng được, không có hậu quả thật.
+#   - Tool THAY ĐỔI dữ liệu thật (create_match, join_match, leave_match,
+#     update_match, cancel_match) — LUÔN có tham số `confirmed: bool`.
+#     Agent CHỈ được set confirmed=True khi user vừa xác nhận rõ ràng ở tin
+#     nhắn hiện tại. Đây là "chốt chặn" thứ 2 (chốt chặn thứ 1 là chỉ dẫn
+#     trong system prompt) — nếu agent lỡ quên hỏi mà set confirmed=True bừa,
+#     ít nhất docstring vẫn nhắc lại ngay tại chỗ nó đang đọc để quyết định.
+#     Xem thêm quy tắc đầy đủ trong system_prompt.py, mục
+#     "QUY TẮC XÁC NHẬN TRƯỚC KHI HÀNH ĐỘNG".
+#   - user_id/user_name của người đang chat KHÔNG bao giờ là tham số mà agent
+#     tự điền — luôn được "khoá cứng" qua closure trong build_agent_tools()
+#     bên dưới, lấy thẳng từ tin nhắn Discord thật. Agent không thể tự xưng
+#     là người khác hoặc thao túng để hành động thay người khác.
+# ============================================================
+
+
+def _load_kb_text() -> str:
+    """Đọc toàn bộ cẩm nang tiện ích từ data/knowledge_base.txt."""
+    kb_path = BASE_DIR / "data" / "knowledge_base.txt"
+    try:
+        with open(kb_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return "(Không tìm thấy file knowledge_base.txt — báo lỗi này cho user, không được bịa dữ liệu.)"
+
+
+def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
+    """
+    Tạo danh sách "tools" cho MỘT lượt chat của MỘT người dùng cụ thể.
+
+    Gọi hàm này lại từ đầu MỖI KHI xử lý 1 tin nhắn mới (xem run_agent() ở
+    llm_handler.py) — vì mỗi lần gọi sẽ "khoá cứng" user_id/user_name của
+    đúng người đang nhắn tin lúc đó vào các tool bên dưới qua closure, agent
+    không thấy và không thể tự đổi 2 giá trị này.
+
+    match_manager: instance MatchManager ĐANG DÙNG CHUNG với slash commands
+                   trong bot.py (để state nhất quán, không bị lệch dữ liệu).
+    """
+
+    # ---------- TOOL 1: Tra cứu tiện ích (RAG) ----------
+    def search_knowledge_base(query: str) -> str:
+        """
+        Tra cứu cẩm nang tiện ích VinUni (căn tin, thư viện, sân thể thao,
+        phòng gym, liên hệ hỗ trợ...).
+
+        LUÔN gọi tool này trước khi trả lời bất kỳ câu hỏi nào về tiện ích/
+        campus — KHÔNG được tự bịa thông tin nếu không thấy trong kết quả
+        trả về. Nếu không tìm thấy phần nào khớp câu hỏi trong cẩm nang, phải
+        nói rõ với user là chưa có dữ liệu này, không suy đoán.
+
+        Kết quả trả về là TOÀN BỘ nội dung cẩm nang, đã chia theo mục
+        (# === TÊN MỤC ===). Chỉ dùng phần khớp câu hỏi, và khi trả lời phải
+        trích dẫn đúng mục đã dùng, ví dụ: "(Theo mục THƯ VIỆN — Cẩm nang học
+        viên VinUni)".
+
+        Args:
+            query: câu hỏi hoặc từ khoá gốc của học viên.
+        """
+        return _load_kb_text()
+
+    # ---------- TOOL 2: Liệt kê / tóm tắt trận đang mở ----------
+    def list_open_matches(sport: str = "") -> dict:
+        """
+        Liệt kê các trận thể thao đang mở, còn chỗ trống — kèm đầy đủ thời
+        gian tạo, số người hiện tại/cần, trình độ, người tạo.
+
+        Dùng khi user hỏi kiểu: "có trận nào đang mở không", "xem danh sách
+        trận", hoặc "tóm tắt cho tôi các lịch/trận gần đây" — với yêu cầu
+        "tóm tắt", KHÔNG có tool riêng để tóm tắt: agent tự đọc dữ liệu tool
+        này trả về rồi tự viết đoạn tóm tắt ngắn gọn bằng lời văn tự nhiên.
+
+        Args:
+            sport: lọc theo môn thể thao (để trống "" = lấy tất cả các môn).
+        """
+        matches = match_manager.get_active_matches()
+        if sport:
+            s = sport.lower()
+            matches = [m for m in matches if s in m["sport"].lower()]
+        matches.sort(key=lambda m: m.get("created_at_iso", ""), reverse=True)
+        return {"count": len(matches), "matches": matches}
+
+    # ---------- TOOL 3: Agent tự tìm & đề xuất trận phù hợp nhất ----------
+    def find_nearest_match(sport: str, level: str = "") -> dict:
+        """
+        AGENT TỰ TÌM & ĐỀ XUẤT (không phải chỉ liệt kê): tìm trong các trận
+        đang mở đúng môn thể thao, xếp hạng theo GIỜ GẦN NHẤT (đoán giờ từ
+        chuỗi thời gian tự do mà người tạo đã nhập, ví dụ "17h", "5h chiều
+        nay") và ưu tiên trận có trình độ khớp với `level` nếu có cung cấp.
+
+        Dùng cho các câu kiểu: "hiện có team đá banh nào lịch sớm nhất hôm
+        nay không, cho mình vào luôn" / "tìm giúp mình 1 trận cầu lông hợp
+        trình độ trung bình".
+
+        QUAN TRỌNG: tool này CHỈ TRẢ VỀ ĐỀ XUẤT — KHÔNG tự thêm user vào bất
+        kỳ trận nào. Sau khi gọi tool này, BẮT BUỘC phải trình bày trận được
+        đề xuất KÈM LÝ DO (trường "reason" trong kết quả trả về) cho user
+        xem, rồi hỏi user có đồng ý không. CHỈ được gọi join_match ở LƯỢT
+        CHAT TIẾP THEO, sau khi user xác nhận rõ ràng.
+
+        Args:
+            sport: môn thể thao cần tìm (bắt buộc).
+            level: trình độ user mong muốn ("vui là chính"/"trung bình"/"khá"),
+                   để trống "" nếu chưa biết trình độ user.
+        """
+        sport_l = sport.lower()
+        now_hour = datetime.now().hour
+        candidates = [
+            m
+            for m in match_manager.get_active_matches()
+            if sport_l in m["sport"].lower() and len(m["players"]) < m["target_players"]
+        ]
+        if not candidates:
+            return {
+                "status": "not_found",
+                "message": f"Hiện chưa có trận {sport} nào còn chỗ trống trong dữ liệu.",
+            }
+
+        def _score(m):
+            hour = extract_hour(m.get("time", ""))
+            if hour is None:
+                time_score = 999  # không đoán được giờ -> xếp cuối, không suy diễn
+            else:
+                diff = hour - now_hour
+                time_score = diff if diff >= 0 else diff + 24
+            level_penalty = 0
+            if level and m.get("level", "chưa rõ").lower() != level.lower():
+                level_penalty = 3
+            return time_score + level_penalty
+
+        ranked = sorted(candidates, key=_score)
+        best = ranked[0]
+
+        reasons = [f"còn {best['target_players'] - len(best['players'])} chỗ trống"]
+        if extract_hour(best.get("time", "")) is not None:
+            reasons.append(f"giờ chơi ({best['time']}) sớm nhất trong số các trận {sport} đang mở")
+        if level and best.get("level", "chưa rõ").lower() == level.lower():
+            reasons.append(f"trình độ khớp với bạn ({level})")
+
+        return {
+            "status": "found",
+            "recommended": best,  # đã có sẵn key "id" = match_id
+            "reason": "; ".join(reasons),
+            "alternatives": ranked[1:3],
+        }
+
+    # ---------- TOOL 4: Tạo trận (thủ công HOẶC agent tự tạo từ prompt) ----------
+    def create_match(sport: str, time: str, location: str, level: str = "chưa rõ", confirmed: bool = False) -> dict:
+        """
+        Tạo trận thể thao mới.
+
+        CHỈ set confirmed=True nếu ĐỦ CẢ 3: user đã cung cấp đầy đủ sport +
+        time + location, VÀ tin nhắn hiện tại của user thể hiện rõ ý muốn tạo
+        thật (không phải đang hỏi thăm dò/nói chung chung). Nếu thiếu bất kỳ
+        trường nào, PHẢI để confirmed=False và hỏi lại user trường còn thiếu
+        — không được tự đoán giờ/sân/môn.
+
+        Args:
+            sport: môn thể thao.
+            time: giờ chơi (giữ nguyên văn user nói, ví dụ "17h", "5h chiều nay").
+            location: sân/địa điểm.
+            level: trình độ mong muốn, "chưa rõ" nếu user không nói.
+            confirmed: True CHỈ khi đã đủ thông tin và user thực sự muốn tạo.
+        """
+        missing = [n for n, v in [("môn thể thao", sport), ("giờ chơi", time), ("sân/địa điểm", location)] if not v]
+        if missing:
+            return {
+                "status": "needs_more_info",
+                "missing_fields": missing,
+                "message": f"Còn thiếu: {', '.join(missing)}. Hỏi lại user trước khi tạo.",
+            }
+        if not confirmed:
+            return {
+                "status": "needs_confirmation",
+                "message": "Đã đủ thông tin nhưng chưa có xác nhận rõ ràng từ user — hỏi lại trước khi tạo thật.",
+            }
+
+        match_id = match_manager.create_match(
+            sport=sport, time=time, location=location, creator_name=user_name, creator_id=user_id, level=level
+        )
+        return {"status": "created", "match_id": match_id, "sport": sport, "time": time, "location": location}
+
+    # ---------- TOOL 5: Tham gia trận (kể cả từ luồng agent đề xuất) ----------
+    def join_match(match_id: str, confirmed: bool) -> dict:
+        """
+        Thêm user hiện tại vào 1 trận đã tồn tại (biết trước match_id — từ
+        list_open_matches hoặc find_nearest_match).
+
+        CHỈ set confirmed=True nếu tin nhắn HIỆN TẠI của user chứa xác nhận
+        rõ ràng (ví dụ: "ok", "đồng ý", "xác nhận", "cho mình vào", "chốt
+        kèo"). Nếu user mới chỉ đang ĐƯỢC đề xuất/hỏi ý kiến (chưa trả lời),
+        BẮT BUỘC set confirmed=False.
+
+        Args:
+            match_id: ID trận cần tham gia.
+            confirmed: True CHỈ khi user vừa xác nhận ở tin nhắn hiện tại.
+        """
+        if not confirmed:
+            return {
+                "status": "needs_confirmation",
+                "message": "Chưa có xác nhận từ user cho trận này — hỏi lại trước khi thêm vào.",
+            }
+        ok, msg = match_manager.join_match(match_id, user_id, user_name)
+        return {"status": "joined" if ok else "failed", "message": msg}
+
+    # ---------- TOOL 6: Rời trận ----------
+    def leave_match(match_id: str) -> dict:
+        """
+        Cho user hiện tại rời khỏi 1 trận đã tham gia. Không cần xác nhận
+        thêm vì đây là hành động tự nguyện, ít rủi ro, dễ hoàn tác (join lại).
+
+        Args:
+            match_id: ID trận muốn rời.
+        """
+        ok, msg = match_manager.leave_match(match_id, user_id)
+        return {"status": "left" if ok else "failed", "message": msg}
+
+    # ---------- TOOL 7: Sửa trận (Correction path) ----------
+    def update_match(
+        match_id: str, new_time: str = "", new_location: str = "", new_sport: str = "", confirmed: bool = False
+    ) -> dict:
+        """
+        Sửa giờ/sân/môn của 1 trận DO CHÍNH user hiện tại tạo (không sửa
+        được trận của người khác). Dùng cho case "tạo trận bị sai giờ muốn
+        sửa ngay", hoặc user đổi ý sau khi tạo (ví dụ nhắn "đổi sang 6h đi").
+
+        CHỈ set confirmed=True nếu user vừa xác nhận muốn đổi thành giá trị
+        cụ thể. Để trống ("") cho trường nào không cần đổi.
+
+        Args:
+            match_id: ID trận cần sửa.
+            new_time: giờ mới, "" nếu không đổi giờ.
+            new_location: sân mới, "" nếu không đổi sân.
+            new_sport: môn mới, "" nếu không đổi môn.
+            confirmed: True CHỈ khi user vừa xác nhận muốn đổi.
+        """
+        if not confirmed:
+            return {"status": "needs_confirmation", "message": "Hỏi lại user muốn đổi thành gì trước khi sửa."}
+        ok, msg = match_manager.update_match(
+            match_id,
+            user_id,
+            new_time=new_time or None,
+            new_location=new_location or None,
+            new_sport=new_sport or None,
+        )
+        return {"status": "updated" if ok else "failed", "message": msg}
+
+    # ---------- TOOL 8: Huỷ trận ----------
+    def cancel_match(match_id: str, confirmed: bool) -> dict:
+        """
+        Huỷ hẳn 1 trận DO CHÍNH user hiện tại tạo. Đây là hành động KHÔNG
+        hoàn tác được (mọi người đã join sẽ mất chỗ) — CHỈ set confirmed=True
+        nếu user vừa xác nhận rõ ràng muốn huỷ thật.
+
+        Args:
+            match_id: ID trận cần huỷ.
+            confirmed: True CHỈ khi user vừa xác nhận muốn huỷ.
+        """
+        if not confirmed:
+            return {"status": "needs_confirmation", "message": "Xác nhận lại với user trước khi huỷ trận thật."}
+        ok, msg = match_manager.cancel_match(match_id, user_id)
+        return {"status": "cancelled" if ok else "failed", "message": msg}
+
+    return [
+        search_knowledge_base,
+        list_open_matches,
+        find_nearest_match,
+        create_match,
+        join_match,
+        leave_match,
+        update_match,
+        cancel_match,
+    ]

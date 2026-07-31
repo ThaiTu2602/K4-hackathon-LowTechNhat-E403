@@ -242,5 +242,71 @@
       "thư viện",
       "cẩm nang"
     ]
+  },
+  {
+    "id": "test_21",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Phòng học 24/7 của VinUni nằm ở đâu và mở cửa những giờ nào?",
+    "expected_behavior": "Trả lời chính xác vị trí phòng A101 (Tòa A) và D102 (Tòa D1), mở cửa 24/7 kể cả cuối tuần và quy định quẹt thẻ",
+    "expected_output_keywords": [
+      "A101",
+      "D102",
+      "24/7",
+      "quẹt thẻ",
+      "cẩm nang"
+    ]
+  },
+  {
+    "id": "test_22",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Mình đang ở Tòa A thì đi sang Ký túc xá (Tòa D) đường nào gần nhất?",
+    "expected_behavior": "Trả lời hướng đi từ Tòa A về hướng Bắc ra phía Cổng San Hồ để đến cụm Ký túc xá Tòa D theo sơ đồ campus",
+    "expected_output_keywords": [
+      "hướng Bắc",
+      "Cổng San Hồ",
+      "Tòa D",
+      "Ký túc xá"
+    ]
+  },
+  {
+    "id": "test_23",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Phòng Ban quản lý thể thao để đăng ký sân cầu lông nằm ở tòa nào?",
+    "expected_behavior": "Trả lời chính xác Ban quản lý thể thao nằm tại Phòng 102 Tòa B theo dữ liệu cẩm nang",
+    "expected_output_keywords": [
+      "phòng 102",
+      "Tòa B",
+      "thể thao",
+      "cẩm nang"
+    ]
+  },
+  {
+    "id": "test_24",
+    "layer": "② Mơ hồ (Chính tả)",
+    "type": "qna",
+    "input": "toa A vss toa C co gan nhau k bot?",
+    "expected_behavior": "Nhận diện đúng câu hỏi gõ tắt/lỗi chính tả về khoảng cách giữa Tòa A và Tòa C, trả lời Tòa A nằm ngay cạnh phía Tây của Tòa C",
+    "expected_output_keywords": [
+      "Tòa A",
+      "Tòa C",
+      "cạnh nhau",
+      "phía Tây"
+    ]
+  },
+  {
+    "id": "test_25",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Từ Cổng chính (Cổng Đại Lộ) đi vào Thư viện Tòa G đi như thế nào?",
+    "expected_behavior": "Trả lời hướng đi thẳng qua Quảng trường trung tâm về phía Bắc, Tòa G là tòa đầu tiên ở cụm trung tâm theo sơ đồ",
+    "expected_output_keywords": [
+      "Quảng trường",
+      "hướng Bắc",
+      "Tòa G",
+      "đầu tiên"
+    ]
   }
 ]

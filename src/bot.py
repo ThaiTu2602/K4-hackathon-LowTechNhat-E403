@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Import 2 module do nhóm tự viết
-from llm_handler import classify_intent, get_qna_answer, extract_match_info
+from llm_handler import run_agent
 from match_manager import MatchManager
 
 # ============================================================
@@ -68,83 +68,46 @@ async def on_message(message):
     # Hiển thị trạng thái "đang gõ..." trong lúc AI xử lý
     async with message.channel.typing():
 
-        # BƯỚC 1: Phân loại ý định tin nhắn bằng AI
-        intent = classify_intent(user_text)
-        print(f"📩 [{message.author}] {user_text} → Intent: {intent}")
+        # Chụp lại "ảnh chụp" trạng thái trận đấu TRƯỚC khi agent chạy, để
+        # sau đó biết trận nào vừa được agent tạo/sửa/thêm người — từ đó gửi
+        # kèm Embed đẹp (agent chỉ trả lời bằng chữ, không tự vẽ Embed được).
+        before_snapshot = {
+            mid: set(m["players"].keys()) for mid, m in match_manager.active_matches.items()
+        }
 
-        # BƯỚC 2: Điều hướng đến chức năng tương ứng
-        if intent == "qna":
-            # --- LUỒNG HỎI ĐÁP TIỆN ÍCH ---
-            answer = get_qna_answer(user_text)
-            await message.reply(answer)
+        # BƯỚC DUY NHẤT: giao hết cho AGENT THẬT xử lý (tự hiểu ý định, tự
+        # gọi đúng tool trong tools.py, tự trả lời) — thay cho luồng cũ
+        # classify_intent() -> if/elif rời rạc.
+        reply_text = run_agent(
+            user_id=message.author.id,
+            user_name=message.author.display_name,
+            user_text=user_text,
+            match_manager=match_manager,
+        )
+        print(f"📩 [{message.author}] {user_text}\n🤖 {reply_text}")
+        await message.reply(reply_text)
 
-        elif intent == "create_match":
-            # --- LUỒNG MỞ TRẬN THỂ THAO ---
-            info = extract_match_info(user_text)
+        # Trận nào vừa được tạo mới, hoặc vừa đổi danh sách người chơi trong
+        # lượt này -> gửi kèm Embed đẹp + ping chủ trận nếu vừa đủ người,
+        # y hệt trải nghiệm khi dùng slash command.
+        touched_ids = []
+        for mid, m in match_manager.active_matches.items():
+            if mid not in before_snapshot or set(m["players"].keys()) != before_snapshot[mid]:
+                touched_ids.append(mid)
 
-            # Kiểm tra thông tin còn thiếu -> hỏi lại user (Nguyên tắc G10)
-            missing = [k for k, v in info.items() if v == "chưa rõ"]
-            if missing:
-                missing_text = ", ".join(missing)
-                await message.reply(
-                    f"🤔 Mình cần thêm thông tin để mở trận nhé!\n"
-                    f"Bạn chưa nói rõ: **{missing_text}**.\n"
-                    f"Ví dụ: `/mo-tran môn:bóng-đá giờ:17h sân:sân-nội-khu`"
-                )
-                return
-
-            # Đủ thông tin -> Tạo trận
-            match_id = match_manager.create_match(
-                sport=info["sport"],
-                time=info["time"],
-                location=info["location"],
-                creator_name=message.author.display_name,
-                creator_id=message.author.id,
-            )
-            embed = match_manager.create_match_embed(match_id)
+        for mid in touched_ids:
+            match = match_manager.active_matches.get(mid)
+            if not match:
+                continue
+            embed = match_manager.create_match_embed(mid)
             sent_msg = await message.channel.send(embed=embed)
-            match_manager.active_matches[match_id]["message_id"] = sent_msg.id
-            match_manager.save()  # Persist message_id vào JSON
-
-        elif intent == "list_matches":
-            # --- LUỒNG XEM DANH SÁCH TRẬN ---
-            embed = match_manager.create_list_embed()
-            await message.reply(embed=embed)
-
-        elif intent == "join_match":
-            # --- LUỒNG THAM GIA TRẬN ---
-            matches = match_manager.get_active_matches()
-            if not matches:
-                await message.reply("Hiện tại chưa có trận nào đang mở. Hãy mở trận mới nhé!")
-            elif len(matches) == 1:
-                # Nếu chỉ có 1 trận -> tự động join luôn
-                mid = matches[0]["id"]
-                success, msg = match_manager.join_match(mid, message.author.id, message.author.display_name)
-                await message.reply(msg)
-                if success:
-                    embed = match_manager.create_match_embed(mid)
-                    await message.channel.send(embed=embed)
-                    # Kiểm tra đủ người -> thông báo
-                    if match_manager.is_match_full(mid):
-                        creator_id = match_manager.active_matches[mid]["creator_id"]
-                        await message.channel.send(
-                            f"🎉 <@{creator_id}> ơi, đã đủ người rồi! Bạn có muốn **chốt kèo** không?"
-                        )
-            else:
-                await message.reply(
-                    "Hiện có nhiều trận đang mở. Gõ `/xem-tran` để xem danh sách, "
-                    "rồi gõ `/join id_trận:<ID trận>` để tham gia nhé!"
+            if match.get("message_id") is None:
+                match["message_id"] = sent_msg.id
+                match_manager.save()
+            if match_manager.is_match_full(mid):
+                await message.channel.send(
+                    f"🎉 <@{match['creator_id']}> ơi, trận **{match['sport']}** đã đủ người! Bạn có muốn chốt kèo không?"
                 )
-
-        else:
-            # --- Ý ĐỊNH KHÁC (chào hỏi, nói chuyện...) ---
-            await message.reply(
-                "👋 Chào bạn! Mình là trợ lý VinUni.\n"
-                "🔹 Hỏi thông tin tiện ích: cứ tag mình và hỏi\n"
-                "🔹 Mở trận thể thao: `/mo-tran`\n"
-                "🔹 Xem trận đang mở: `/xem-tran`\n"
-                "🔹 Tham gia trận: `/join`"
-            )
 
 
 # ============================================================

@@ -1,29 +1,140 @@
 # === CĂN TIN (CANTEEN) ===
-- Căn tin VinUni mở cửa từ 7h00 đến 19h00 hàng ngày (cả Thứ 7 và Chủ nhật).
-- Căn tin có trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm ở góc trái gần cửa ra vào.
-- Giá cơm trưa dao động từ 25.000đ đến 45.000đ.
-- Căn tin có bán nước đóng chai, cà phê, trà sữa.
+- Căn tin VinUni nằm tại Tòa E (Khu Hlab Căn tin & Hospitality Lab).
+- Mở cửa từ 7h00 đến 19h00 hàng ngày (cả Thứ 7 và Chủ nhật).
+- Căn tin trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm ở góc trái gần cửa ra vào.
+- Giá cơm trưa dao động từ 40.000đ đến 80.000đ.
+- Có thể mua vé tháng với giá 880.000đ với 22 lần ăn, có thể chia sẻ cho bạn khác sử dụng.
+- Căn tin có bán nước đóng chai, cà phê, trà sữa, cookies và cocktails.
 - Khu vực ăn uống có wifi miễn phí, mật khẩu hỏi tại quầy thu ngân.
 
 # === THƯ VIỆN (LIBRARY) ===
-- Thư viện mở cửa từ 8h00 đến 21h00 các ngày trong tuần (Thứ 2 đến Thứ 6).
-- Cuối tuần (Thứ 7 và Chủ nhật) thư viện mở cửa từ 9h00 đến 17h00.
-- Cần dùng thẻ từ (thẻ học viên) để quẹt vào cửa thư viện.
-- Nếu thẻ từ không vào được thư viện, vui lòng liên hệ quầy IT Support ở tầng 1 toà G, mở cửa từ 8h00-17h00.
-- Thư viện có 3 tầng: Tầng 1 là khu vực đọc sách, Tầng 2 là phòng học nhóm, Tầng 3 là khu yên tĩnh.
-- Có thể mượn sách tối đa 5 cuốn trong 14 ngày.
+- Thư viện VinUni nằm tại TÒA A (ngay phía sau Tháp hiệu bộ Tòa I), được xem là "trái tim" tri thức của trường.
+- Kiến trúc & không gian tư vấn bởi các giáo sư Đại học Oxford, Cornell và HBA.
+- Mở cửa từ 8h00 đến 21h00 các ngày trong tuần (Thứ 2 đến Thứ 6). Cuối tuần (Thứ 7 và Chủ nhật) mở cửa từ 9h00 đến 17h00.
+- Cần dùng thẻ từ (thẻ học viên VinUni) để quẹt cửa tự động. Nếu thẻ lỗi, liên hệ quầy IT Support ở Tầng 1 Tòa G (8h00 - 17h00).
+- Thư viện gồm 2 tầng không gian học tập + Vườn treo Babylon trên mái.
+- Mượn sách tối đa 5 cuốn trong 14 ngày.
+- Đồ thất lạc nhặt được hoặc bị mất trong thư viện: nộp/hỏi tại Bàn Lễ tân (quầy Thủ thư) ở tầng 1, trong vòng 30 ngày.
+- Đăng ký phòng học nhóm (tầng 2): đặt qua hệ thống đặt phòng trực tuyến trên website thư viện, hoặc trực tiếp tại Bàn Lễ tân, tối đa 2 giờ mỗi lượt.
+- Vườn treo Babylon (trên mái Tòa A): Rộng 500 m², sức chứa 150 người, là không gian đọc sách thư giãn kết hợp tổ chức tiệc/sự kiện ngoài trời.
+- Không gian tiêu biểu Tòa A: Phòng A101 (sức chứa 100 người, có khu học 24/7), Phòng A117 (30 người, trang bị màn hình cảm ứng).
 
-# === THỂ THAO (SPORTS) ===
-- Sân bóng đá nội khu mở cửa từ 6h00 đến 22h00 hàng ngày.
-- Sân cầu lông trong nhà mở cửa từ 7h00 đến 21h00 (Thứ 2 đến Thứ 6).
-- Phòng gym mở cửa từ 6h00 đến 22h00, miễn phí cho học viên có thẻ.
-- Muốn đặt sân cầu lông cần liên hệ ban quản lý qua email: sports@vinuni.edu.vn hoặc gặp trực tiếp tại phòng 102 toà B.
-- Sân bóng đá có thể chơi tự do nếu không có lịch đặt trước.
-- Số người tối thiểu để mở trận bóng đá là 10 người (chia 2 đội 5 vs 5).
-- Số người tối thiểu để mở trận cầu lông đôi là 4 người.
+# === PHÒNG HỌC 24/7 (24/7 STUDY ROOMS) ===
+- Vị trí các phòng học 24/7: Phòng A101 (Tầng 1 Tòa A - Thư viện) và Phòng D102 (Tầng 1 Tòa D1).
+- Giờ mở cửa: Hoạt động 24/7 (24 giờ mỗi ngày, 7 ngày trong tuần, bao gồm cả ngày lễ và cuối tuần).
+- Cách truy cập: Quẹt thẻ từ học viên VinUni để mở cửa tự động vào ban đêm (từ 21h00 đến 6h00 sáng hôm sau).
+- Trang thiết bị: Điều hòa, wifi tốc độ cao, ổ cắm điện từng bàn, bảng trắng thảo luận nhóm, cây nước nóng lạnh.
+- Máy bán nước tự động & snack: Trang bị ngay hành lang bên ngoài phòng A101 và D102.
+- Quy định chung: Giữ trật tự yên tĩnh sau 22h00, không mang đồ ăn có mùi mạnh vào phòng, tự dọn dẹp rác cá nhân trước khi rời đi.
+
+# === THỂ THAO & SỨC KHỎE (SPORTS & FITNESS) ===
+- Tòa K (Khu phức hợp thể thao): Được AECOM tư vấn thiết kế.
+  + Nhà thi đấu đa năng: Diện tích 840 m², sức chứa 800 người, khán đài 325 chỗ (chơi cầu lông, bóng rổ indoor).
+  + Bể bơi bốn mùa: Kích thước 50 × 25 m, 8 làn bơi tiêu chuẩn, khán đài 334 chỗ.
+  + Phòng Gym, Yoga, Aerobic: Đầy đủ máy móc hiện đại, mở cửa 6h00 - 22h00, miễn phí cho học viên có thẻ.
+- Tòa L (Sân vận động & Khán đài): Sân bóng đá nội khu ngoài trời, mở cửa 6h00 - 22h00 hàng ngày. Chơi tự do nếu không có lịch đặt trước. Số người tối thiểu mở trận đá bóng là 10 người (5 vs 5).
+- Sân cầu lông trong nhà: Mở cửa 7h00 - 21h00 (T2 - T6). Số người tối thiểu mở trận cầu lông đôi là 4 người. Đặt sân cầu lông liên hệ email sports@vinuni.edu.vn hoặc gặp trực tiếp tại Phòng 102 Tòa B.
+
+# === BẢN ĐỒ & CÔNG NĂNG CÁC TÒA NHÀ (VINUNI BUILDINGS) ===
+- Quy tắc đọc mã phòng: <Tên Tòa><Số Tầng><Số Phòng> (Ví dụ: C401 hay C 4 01 là Tòa C - Tầng 4 - Phòng 01).
+
+Chi tiết công năng & không gian tiêu biểu từng tòa:
+- Tòa I (Khối tháp trung tâm / Hiệu bộ / Nhà Truyền thông): Cao 108 m với biểu tượng Mặt trời trên đỉnh. Điểm nhấn kiến trúc VinUni, phục vụ điều hành, họp hành và sự kiện đặc biệt. Sảnh chính rộng 500 m² (sức chứa 150 người) có hai hàng cột La Mã và trần họa tiết trống đồng. Không gian tiêu biểu: I201 (150 người), I202 (100 người), I207 (30 người, bàn hội nghị oval).
+- Tòa A (Thư viện & Elab): Nằm ngay sau Tòa I. "Trái tim" tri thức gồm Thư viện 2 tầng, Vườn treo Babylon 500 m² trên mái, phòng 24/7 A101 và workshop chuyên gia.
+- Tòa C (Khối giảng dạy / Lớp học thử): Hệ thống phòng học đa dạng phục vụ giảng dạy, thi cử, học nhóm và mô phỏng. Không gian tiêu biểu: C401 (200 người, 33 bàn tròn, 6 máy chiếu), C202 (74 người, có thiết bị đào tạo trực tuyến), các phòng khác 30–80 người.
+- Tòa E (Phòng học đa năng & Căn tin): Nằm cạnh Tòa I. Dùng cho giảng dạy, cuộc thi, sự kiện, Hlab Căn tin và Hospitality lab. Không gian tiêu biểu: E401 (30 người), E402 (80 người, 8 TV cảm ứng), E403 (200 người, 2 máy chiếu, 1 TV).
+- Tòa G (Nghiên cứu và thực hành / Superlab): Nằm ở hàng Bắc đối diện Cổng San Hồ. Gồm trung tâm nghiên cứu, Superlab CNTT, phòng thí nghiệm giải phẫu & sinh hóa, IT Support (Tầng 1). Bàn ghế di chuyển linh hoạt. Không gian tiêu biểu: G104 (150 người, máy chiếu, bàn ghế đào tạo linh hoạt).
+- Tòa H (Superlab In 3D & CNC): Nằm cạnh Bãi giữ xe và Tòa G. Chuyên trang bị phòng thí nghiệm in 3D & gia công CNC.
+- Tòa B (Hội trường VinUni & Showcase Khởi nghiệp): Một trong những hội trường đại học lớn nhất Việt Nam (diện tích sàn 2.100 m², 1.500 chỗ ngồi). Kiến trúc cổ điển Châu Âu với tượng thần Hy Lạp, màn hình LED chính 9×5m + 2 màn 4×3m. Nơi diễn ra Showcase dự án khởi nghiệp Châu Á. Phòng 102 Tòa B là Ban quản lý thể thao.
+- Tòa F (Trung tâm Mô phỏng & Thực hành): Nằm ở góc Đông-Nam campus, trang bị phòng thực hành mô phỏng chuyên sâu.
+- Tòa K (Khu phức hợp thể thao): AECOM tư vấn, gồm nhà đa năng 840m², bể bơi 4 mùa 8 làn, phòng Gym/Yoga.
+- Tòa L (Sân vận động & Khán đài): Sân bóng đá ngoài trời và khán đài theo dõi.
+- Tòa J (Ký túc xá học viên): Khu Ký túc xá hình chữ U màu xanh, nằm ở góc phía Bắc gần Cổng San Hồ.
+- Bãi giữ xe: Nằm ở phía Tây (bên trái Tòa H và Tòa C).
+- Quảng trường chính: Rộng 1.716 m², sức chứa 1.500–2.000 người, là trung tâm kết nối các tòa ở Cụm Phía Nam, phục vụ đại sự kiện.
 
 # === LIÊN HỆ HỖ TRỢ ===
-- Hỗ trợ kỹ thuật (IT Support): Tầng 1 toà G, giờ làm việc 8h00-17h00 các ngày trong tuần.
+- Hỗ trợ kỹ thuật (IT Support): Tầng 1 Tòa G, giờ làm việc 8h00-17h00 các ngày trong tuần.
+- Ban quản lý thể thao: Phòng 102 Tòa B (Email: sports@vinuni.edu.vn).
 - Email hỗ trợ chung: support@vinuni.edu.vn
 - Số điện thoại bảo vệ (24/7): 0123-456-789.
-- Mentor/TA có thể liên hệ qua kênh Discord #hoi-mentor.
+- Mentor/TA liên hệ qua kênh Discord #hoi-mentor.
+
+# === VỊ TRÍ TƯƠNG ĐỐI & HƯỚNG DẪN ĐI LẠI GIỮA CÁC TÒA ===
+- Bố cục tổng quan từ Bắc xuống Nam (theo sơ đồ bản đồ chính thức):
+  + Cụm Phía Bắc (Gần Cổng San Hồ): Cổng San Hồ, Tòa L (Sân bóng đá), Tòa K (Khu phức hợp thể thao), Tòa J (Ký túc xá).
+  + Cụm Trung tâm (Học thuật, Nghiên cứu & Hiệu bộ):
+    * Hàng Bắc (hướng ra Cổng San Hồ): Tòa H (Lab In 3D/CNC - Tây), Tòa G (Superlab CNTT/Sinh hóa - Giữa), Tòa B (Hội trường 1.500 chỗ - Đông).
+    * Hàng Giữa: Bãi giữ xe (Tây), Tòa A (Thư viện - Giữa), Triển lãm khởi nghiệp (Đông).
+    * Hàng Nam (gần Quảng trường): Tòa C (Giảng dạy - Tây), Tòa I (Tháp Hiệu bộ 108m - Giữa), Tòa E (Đa năng/Căn tin - Đông).
+    * Góc Đông-Nam: Tòa F (Trung tâm Mô phỏng).
+  + Cụm Phía Nam: Sân khấu, Quảng trường trung tâm (1.716 m²) & Cổng Đại Lộ (Cổng chính).
+
+- Hướng dẫn di chuyển giữa các tòa:
+  + Từ Cổng chính (Cổng Đại Lộ) đến Tháp Hiệu bộ (Tòa I) / Thư viện (Tòa A): Đi thẳng theo hướng Bắc qua Quảng trường trung tâm. Tòa I (Tháp 108m) nằm ngay đầu cụm trung tâm, Tòa A (Thư viện) nằm ngay sau Tòa I.
+  + Từ Tòa A (Thư viện) đi Tòa J (Ký túc xá): Đi về hướng Bắc (hướng ra Cổng San Hồ) qua Tòa G/B, tiếp tục đi qua Tòa K (Khu thể thao) là tới Tòa J (Ký túc xá) ở góc trên bên phải.
+  + Từ Tòa A (Thư viện) đi Tòa C (Giảng dạy) hoặc Tòa E (Đa năng/Căn tin): Từ Tòa A đi xuống phía Nam, rẽ sang phía Tây là Tòa C, rẽ sang phía Đông là Tòa E.
+  + Từ Bãi giữ xe đi các Tòa học thuật: Bãi giữ xe nằm ở phía Tây, ngay sát bên cạnh Tòa H và Tòa C.
+  + Từ Cụm Học thuật đi Khu thể thao (Tòa L, K): Đi về phía Bắc hướng Cổng San Hồ. Tòa L (Sân bóng) nằm bên trái, Tòa K (Bể bơi/Gym/Indoor) nằm cạnh Tòa L.
+  + Tòa A và Tòa C nằm ở cụm trung tâm: Tòa A nằm ở giữa, Tòa C nằm ngay phía Tây-Nam của Tòa A, đi bộ giữa 2 tòa chỉ mất 2-3 phút.
+
+# === SƠ ĐỒ ĐỒ THỊ DI CHUYỂN GIỮA CÁC TÒA (MERMAID GRAPH) ===
+```mermaid
+graph TD
+    subgraph PHIA_BAC["🔴 Cụm Phía Bắc (Gần Cổng San Hồ)"]
+        SanHo["🚪 Cổng San Hồ"]
+        ToaL["⚽ Tòa L (Sân bóng đá)"]
+        ToaK["🏊 Tòa K (Khu phức hợp thể thao / Bể bơi / Gym)"]
+        ToaJ["🏢 Tòa J (Ký túc xá)"]
+    end
+
+    subgraph CUM_TRUNG_TAM["🔵 Cụm Học thuật, Nghiên cứu & Hiệu bộ"]
+        subgraph HANG_BAC["Hàng Bắc (Gần Cổng San Hồ)"]
+            ToaH["🖨️ Tòa H (Lab In 3D & CNC)"]
+            ToaG["🔬 Tòa G (Superlab CNTT & Sinh hóa)"]
+            ToaB["🏛️ Tòa B (Hội trường VinUni 1.500 chỗ)"]
+        end
+
+        subgraph HANG_GIUA["Hàng Giữa"]
+            Parking["🅿️ Bãi giữ xe"]
+            ToaA["📖 Tòa A (Thư viện / Elab / Phòng 24/7)"]
+            Startup["💡 Triển lãm khởi nghiệp"]
+        end
+
+        subgraph HANG_NAM["Hàng Nam (Gần Quảng trường)"]
+            ToaC["📚 Tòa C (Khối giảng dạy / Lớp học)"]
+            ToaI["🗼 Tòa I (Tháp Hiệu bộ 108m / Nhà Truyền thông)"]
+            ToaE["🍽️ Tòa E (Phòng học đa năng / Căn tin)"]
+        end
+
+        ToaF["🧪 Tòa F (Trung tâm Mô phỏng - Góc Đông Nam)"]
+    end
+
+    subgraph PHIA_NAM["🟢 Cụm Phía Nam"]
+        QuangTruong["⛲ Quảng trường trung tâm (1.716 m²)"]
+        CongDaiLo["🚪 Cổng Đại Lộ (Cổng chính)"]
+    end
+
+    %% Trục kết nối Nam - Bắc chính
+    CongDaiLo -->|Bắc| QuangTruong
+    QuangTruong -->|Bắc| ToaI
+    ToaI -->|Bắc| ToaA
+    ToaA -->|Bắc| ToaG
+
+    %% Nối hàng ngang
+    ToaC <-->|Đông/Tây| ToaI
+    ToaI <-->|Đông/Tây| ToaE
+    Parking <-->|Đông/Tây| ToaA
+    ToaA <-->|Đông/Tây| Startup
+    ToaH <-->|Đông/Tây| ToaG
+    ToaG <-->|Đông/Tây| ToaB
+    ToaE -->|Đông Nam| ToaF
+
+    %% Nối Cụm Trung tâm lên Cụm Phía Bắc
+    ToaG -->|Bắc| ToaL
+    ToaB -->|Bắc| ToaK
+    ToaK -->|Đông| ToaJ
+    SanHo --- ToaL
+    SanHo --- ToaK
+    SanHo --- ToaJ
+```
