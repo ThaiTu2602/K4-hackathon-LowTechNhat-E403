@@ -70,6 +70,12 @@ def load_knowledge_base():
 # đúng người đó, không bị người khác chen ngang trả lời hộ.
 _agent_sessions: dict[int, "genai.chats.Chat"] = {}
 
+# Đường dẫn ảnh sơ đồ (nếu tool draw_route_diagram vừa được gọi) của MỖI
+# user — bot.py đọc ra sau run_agent() để đính kèm file ảnh vào tin nhắn
+# Discord. Không gộp vào giá trị trả về của run_agent() (vẫn giữ nguyên
+# kiểu str) để không phá code đang gọi run_agent() ở nơi khác.
+_last_image_by_user: dict[int, str] = {}
+
 # ---- LOG mọi lượt gọi AI thật (bằng chứng "lời gọi AI thật, không
 # hardcode" cho rubric R5) — mỗi dòng 1 lượt, ghi timestamp + input + tool
 # nào được gọi với tham số gì + câu trả lời cuối cùng.
@@ -87,6 +93,54 @@ def _extract_new_tool_calls(chat, history_len_before: int) -> list[dict]:
             if fc:
                 calls.append({"name": fc.name, "args": dict(fc.args) if fc.args else {}})
     return calls
+
+
+def _extract_new_image_path(chat, history_len_before: int) -> str | None:
+    """Tìm đường dẫn ảnh sơ đồ MỚI phát sinh (nếu có) trong lượt send_message()
+    vừa rồi — quét các function_response tên "draw_route_diagram". Lấy kết
+    quả CUỐI CÙNG nếu tool được gọi nhiều lần trong 1 lượt (ảnh mới nhất)."""
+    hist = chat.get_history(curated=False)
+    image_path = None
+    for content in hist[history_len_before:]:
+        for part in content.parts or []:
+            fr = getattr(part, "function_response", None)
+            if fr and fr.name == "draw_route_diagram":
+                result = (fr.response or {}).get("result", {})
+                path = result.get("image_path")
+                if path:
+                    image_path = path
+    return image_path
+
+
+def _is_real_user_turn(content) -> bool:
+    """
+    True nếu đây là 1 tin nhắn user THẬT (có chữ user tự gõ) — KHÔNG phải
+    function_response. Cả 2 loại đều mang role="user" trong lịch sử Gemini,
+    nên không thể chỉ dựa vào role để phân biệt (đây chính là nguyên nhân
+    lỗi cũ: "function response turn comes immediately after a function
+    call turn" — cắt lịch sử trúng ngay 1 function_response mồ côi, vì code
+    cũ tưởng role="user" là an toàn để bắt đầu).
+    """
+    if content.role != "user":
+        return False
+    return any(getattr(p, "text", None) for p in (content.parts or []))
+
+
+def _trim_history_safe(hist: list, keep_last_n_turns: int = 10) -> list:
+    """
+    Cắt lịch sử chat, giữ lại N LƯỢT HỘI THOẠI thật gần nhất — an toàn
+    tuyệt đối với các cặp function_call/function_response: chỉ cắt tại
+    đúng ranh giới bắt đầu 1 lượt user thật (_is_real_user_turn), không
+    bao giờ cắt vào giữa 1 cặp gọi tool đang dang dở.
+
+    Trả về CHÍNH `hist` gốc (không tạo bản sao) nếu chưa cần cắt, để nơi
+    gọi biết được có cần khởi tạo lại phiên chat hay không (so sánh `is`).
+    """
+    turn_starts = [i for i, c in enumerate(hist) if _is_real_user_turn(c)]
+    if len(turn_starts) <= keep_last_n_turns:
+        return hist
+    cut_index = turn_starts[-keep_last_n_turns]
+    return hist[cut_index:]
 
 
 def _log_agent_call(user_id: int, user_name: str, user_text: str, tool_calls: list, final_text: str) -> None:
@@ -129,12 +183,33 @@ def _run_agent_traced(user_id: int, user_name: str, user_text: str, match_manage
             ),
         )
     chat = _agent_sessions[user_id]
+
+    # Cắt bớt lịch sử nếu quá dài (giữ lại tối đa N lượt hội thoại GẦN NHẤT)
+    # để tránh đầy context window / tốn token.
+    hist = chat.get_history(curated=False)
+    trimmed = _trim_history_safe(hist, keep_last_n_turns=10)
+    if trimmed is not hist:
+        tools = build_agent_tools(match_manager, user_id, user_name)
+        _agent_sessions[user_id] = _client.chats.create(
+            model=GEMINI_MODEL,
+            config=types.GenerateContentConfig(
+                system_instruction=AGENT_SYSTEM_PROMPT,
+                tools=tools,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(maximum_remote_calls=6),
+            ),
+            history=trimmed,
+        )
+        chat = _agent_sessions[user_id]
+
     history_len_before = len(chat.get_history(curated=False))
 
     try:
         response = chat.send_message(user_text)
         final_text = response.text or "🤔 Mình chưa nghĩ ra câu trả lời phù hợp, bạn hỏi lại rõ hơn giúp mình nhé."
         tool_calls = _extract_new_tool_calls(chat, history_len_before)
+        image_path = _extract_new_image_path(chat, history_len_before)
+        if image_path:
+            _last_image_by_user[user_id] = image_path
     except Exception as e:
         print(f"⚠️ Lỗi run_agent: {e}")
         final_text = f"⚠️ Mình gặp lỗi khi xử lý: {e}"
@@ -142,6 +217,19 @@ def _run_agent_traced(user_id: int, user_name: str, user_text: str, match_manage
 
     _log_agent_call(user_id, user_name, user_text, tool_calls, final_text)
     return final_text, tool_calls
+
+
+def pop_last_image_path(user_id: int) -> str | None:
+    """
+    Lấy (và XOÁ luôn) đường dẫn ảnh sơ đồ vừa vẽ cho user này ở lượt gần
+    nhất, nếu có — bot.py gọi hàm này NGAY SAU run_agent() để biết có cần
+    đính kèm file ảnh vào tin nhắn Discord hay không.
+
+    Dùng pop (không phải get) để ảnh chỉ được đính kèm ĐÚNG 1 LẦN cho đúng
+    lượt đã sinh ra nó — tránh việc 1 tin nhắn không liên quan sau đó vô
+    tình bị đính kèm nhầm ảnh cũ còn sót lại.
+    """
+    return _last_image_by_user.pop(user_id, None)
 
 
 def run_agent(user_id: int, user_name: str, user_text: str, match_manager) -> str:

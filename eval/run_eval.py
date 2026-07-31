@@ -98,10 +98,14 @@ def run() -> None:
         # kế) từ chối vì không tìm thấy trận nào để thao tác -> seed riêng.
         expected = case.get("expected_intent", {})
         if case.get("type") in ("cancel_event", "update_event") and expected.get("sport"):
+            # location riêng theo từng case (không phải "sân nội khu" cố
+            # định) để không bị chính quy tắc "cách sân tối thiểu 2 tiếng"
+            # (match_manager.MIN_GAP_HOURS_SAME_LOCATION) chặn nhầm với
+            # trận seed cố định ở _seed_matches() cùng giờ "17h".
             mgr.create_match(
                 sport=expected["sport"],
                 time="17h",
-                location="sân nội khu",
+                location=f"sân eval case {i}",
                 creator_name=f"EvalUser{i}",
                 creator_id=uid,
             )
