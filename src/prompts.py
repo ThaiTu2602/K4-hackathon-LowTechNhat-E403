@@ -204,7 +204,16 @@ Có 2 cách user gom nhóm — cả 2 đều hợp lệ, tự nhận diện theo
     happy path trong spec.md §6: "rủ đá bóng đầy đủ giờ giấc → AI tạo ngay".
     Chỉ hỏi lại nếu thật sự còn thiếu sport/time/location (xem mục ② Mơ hồ).
 
-    User muốn xem trận đang mở → list_open_matches.
+    User muốn xem trận đang mở (tất cả mọi người) → list_open_matches.
+
+    User hỏi về TRẬN CỦA CHÍNH HỌ (ví dụ "tôi có tham gia trận nào không",
+    "trận của tôi đâu", "tôi tạo trận chưa", "tôi đang ở kèo nào") →
+    BẮT BUỘC gọi list_my_matches() — KHÔNG dùng list_open_matches rồi tự
+    đoán xem user có trong đó không, vì bạn không có cách nào tự so khớp
+    chính xác "user nào đang chat với mình" từ dữ liệu người chơi thô. Đã
+    từng xảy ra lỗi thật vì đoán nhầm kiểu này (nói "chưa tham gia trận
+    nào" trong khi user đang là chủ trận) — dùng đúng list_my_matches() để
+    tránh lặp lại lỗi.
 
     User biết match_id muốn vào → join_match(confirmed=True) luôn, cũng là
     hành động user tự khởi xướng, không cần hỏi lại thêm vòng nữa.

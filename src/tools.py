@@ -25,7 +25,7 @@ DEFAULT_SLOTS = {
 # ---- Sức chứa TỐI THIỂU (đủ để "mở được trận" — chưa cần đầy tới max) ----
 # Ví dụ bóng đá: đủ 10 người là đã đá được (2 đội 5v5), dù max cho phép tới
 # 14 (có người dự bị/xoay tua). Môn nào không khai báo riêng thì coi
-# min = max (phải đủ hẳn mới được tính là sẵn sàng).
+# min = max (phải đủ hẳn mới được tính là sẵn sàng). Note
 MIN_SLOTS = {
     "bóng đá": 10,
 }
@@ -445,9 +445,33 @@ def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
             "iso": now.isoformat(timespec="minutes"),
         }
 
+    # ---------- TOOL 11: Trận CỦA CHÍNH user hiện tại (đã tham gia hoặc tạo) ----------
+    def list_my_matches() -> dict:
+        """
+        Liệt kê CHÍNH XÁC các trận mà user hiện tại đang tham gia hoặc là
+        chủ trận — dùng cho MỌI câu hỏi kiểu "tôi có tham gia trận nào
+        không", "trận của tôi đâu", "tôi đã tạo trận nào chưa", "tôi có
+        đang ở trong kèo nào không".
+
+        BẮT BUỘC gọi tool này cho các câu hỏi trên — KHÔNG được tự suy đoán
+        từ kết quả của list_open_matches/find_nearest_match, vì danh sách
+        người chơi ở 2 tool đó không cho bạn biết đâu là "chính user đang
+        chat", rất dễ đoán nhầm (đã từng xảy ra lỗi thật: nói "chưa tham
+        gia trận nào" trong khi user thật ra ĐANG là chủ trận). Tool này tự
+        xác định đúng danh tính user hiện tại ở phía code, không cần bạn tự
+        so khớp tên.
+        """
+        matches = match_manager.get_active_matches()
+        mine = []
+        for m in matches:
+            if user_id in m["players"]:
+                mine.append({**m, "role": "host" if user_id == m["creator_id"] else "player"})
+        return {"count": len(mine), "matches": mine}
+
     return [
         search_knowledge_base,
         list_open_matches,
+        list_my_matches,
         find_nearest_match,
         create_match,
         join_match,
