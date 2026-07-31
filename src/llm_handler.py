@@ -129,6 +129,28 @@ def _run_agent_traced(user_id: int, user_name: str, user_text: str, match_manage
             ),
         )
     chat = _agent_sessions[user_id]
+    
+    # Cắt bớt lịch sử nếu quá dài (ví dụ: giữ lại tối đa 10 lượt chat = 20 tin nhắn)
+    # để tránh đầy context window / tốn token.
+    hist = chat.get_history(curated=False)
+    if len(hist) > 20:
+        new_hist = hist[-20:]
+        # Gemini bắt buộc lịch sử bắt đầu bằng 'user', nên nếu cắt trúng 'model' thì bỏ phần tử đó đi
+        if new_hist and new_hist[0].role != "user":
+            new_hist = new_hist[1:]
+            
+        tools = build_agent_tools(match_manager, user_id, user_name)
+        _agent_sessions[user_id] = _client.chats.create(
+            model=GEMINI_MODEL,
+            config=types.GenerateContentConfig(
+                system_instruction=AGENT_SYSTEM_PROMPT,
+                tools=tools,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(maximum_remote_calls=6),
+            ),
+            history=new_hist
+        )
+        chat = _agent_sessions[user_id]
+
     history_len_before = len(chat.get_history(curated=False))
 
     try:
