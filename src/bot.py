@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Import 2 module do nhóm tự viết
-from llm_handler import run_agent
+from llm_handler import run_agent, pop_last_image_path
 from match_manager import MatchManager
 
 # ============================================================
@@ -85,7 +85,16 @@ async def on_message(message):
             match_manager=match_manager,
         )
         print(f"📩 [{message.author}] {user_text}\n🤖 {reply_text}")
-        await message.reply(reply_text)
+
+        # Nếu lượt này agent vừa vẽ sơ đồ đường đi (tool draw_route_diagram),
+        # đính kèm luôn file ảnh thật vào tin nhắn trả lời — không đổi
+        # signature run_agent() (vẫn chỉ trả về str) để không phá chỗ khác
+        # đang gọi hàm này, xem thêm llm_handler.pop_last_image_path().
+        image_path = pop_last_image_path(message.author.id)
+        if image_path and os.path.exists(image_path):
+            await message.reply(reply_text, file=discord.File(image_path))
+        else:
+            await message.reply(reply_text)
 
         # Trận nào vừa được tạo mới, hoặc vừa đổi danh sách người chơi trong
         # lượt này -> gửi kèm Embed đẹp + ping chủ trận nếu vừa đủ người,
@@ -140,13 +149,18 @@ async def mo_tran(interaction: discord.Interaction, môn: str, giờ: str, sân:
     sport = môn.replace("-", " ")
     location = sân.replace("-", " ")
 
-    match_id = match_manager.create_match(
+    ok, result = match_manager.create_match(
         sport=sport,
         time=giờ,
         location=location,
         creator_name=interaction.user.display_name,
         creator_id=interaction.user.id,
     )
+    if not ok:
+        await interaction.response.send_message(result)
+        return
+
+    match_id = result
     embed = match_manager.create_match_embed(match_id)
     await interaction.response.send_message(embed=embed)
 
