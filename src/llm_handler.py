@@ -89,6 +89,37 @@ def _extract_new_tool_calls(chat, history_len_before: int) -> list[dict]:
     return calls
 
 
+def _is_real_user_turn(content) -> bool:
+    """
+    True nếu đây là 1 tin nhắn user THẬT (có chữ user tự gõ) — KHÔNG phải
+    function_response. Cả 2 loại đều mang role="user" trong lịch sử Gemini,
+    nên không thể chỉ dựa vào role để phân biệt (đây chính là nguyên nhân
+    lỗi cũ: "function response turn comes immediately after a function
+    call turn" — cắt lịch sử trúng ngay 1 function_response mồ côi, vì code
+    cũ tưởng role="user" là an toàn để bắt đầu).
+    """
+    if content.role != "user":
+        return False
+    return any(getattr(p, "text", None) for p in (content.parts or []))
+
+
+def _trim_history_safe(hist: list, keep_last_n_turns: int = 10) -> list:
+    """
+    Cắt lịch sử chat, giữ lại N LƯỢT HỘI THOẠI thật gần nhất — an toàn
+    tuyệt đối với các cặp function_call/function_response: chỉ cắt tại
+    đúng ranh giới bắt đầu 1 lượt user thật (_is_real_user_turn), không
+    bao giờ cắt vào giữa 1 cặp gọi tool đang dang dở.
+
+    Trả về CHÍNH `hist` gốc (không tạo bản sao) nếu chưa cần cắt, để nơi
+    gọi biết được có cần khởi tạo lại phiên chat hay không (so sánh `is`).
+    """
+    turn_starts = [i for i, c in enumerate(hist) if _is_real_user_turn(c)]
+    if len(turn_starts) <= keep_last_n_turns:
+        return hist
+    cut_index = turn_starts[-keep_last_n_turns]
+    return hist[cut_index:]
+
+
 def _log_agent_call(user_id: int, user_name: str, user_text: str, tool_calls: list, final_text: str) -> None:
     try:
         LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -129,16 +160,12 @@ def _run_agent_traced(user_id: int, user_name: str, user_text: str, match_manage
             ),
         )
     chat = _agent_sessions[user_id]
-    
-    # Cắt bớt lịch sử nếu quá dài (ví dụ: giữ lại tối đa 10 lượt chat = 20 tin nhắn)
+
+    # Cắt bớt lịch sử nếu quá dài (giữ lại tối đa N lượt hội thoại GẦN NHẤT)
     # để tránh đầy context window / tốn token.
     hist = chat.get_history(curated=False)
-    if len(hist) > 20:
-        new_hist = hist[-20:]
-        # Gemini bắt buộc lịch sử bắt đầu bằng 'user', nên nếu cắt trúng 'model' thì bỏ phần tử đó đi
-        if new_hist and new_hist[0].role != "user":
-            new_hist = new_hist[1:]
-            
+    trimmed = _trim_history_safe(hist, keep_last_n_turns=10)
+    if trimmed is not hist:
         tools = build_agent_tools(match_manager, user_id, user_name)
         _agent_sessions[user_id] = _client.chats.create(
             model=GEMINI_MODEL,
@@ -147,7 +174,7 @@ def _run_agent_traced(user_id: int, user_name: str, user_text: str, match_manage
                 tools=tools,
                 automatic_function_calling=types.AutomaticFunctionCallingConfig(maximum_remote_calls=6),
             ),
-            history=new_hist
+            history=trimmed,
         )
         chat = _agent_sessions[user_id]
 
