@@ -27,5 +27,20 @@
     "created_at": "23:58 30/07",
     "created_at_iso": "2026-07-30T23:58:33.310791",
     "message_id": 1532432231308726423
+  },
+  "3a2cdb6f": {
+    "sport": "chạy bộ",
+    "time": "8h tối ngày 4/8",
+    "location": "sân VinUni",
+    "level": "chưa rõ",
+    "creator_name": "Nguyễn Hoàng Minh - 01764",
+    "creator_id": 870717199151693834,
+    "players": {
+      "870717199151693834": "Nguyễn Hoàng Minh - 01764"
+    },
+    "target_players": 10,
+    "created_at": "00:26 31/07",
+    "created_at_iso": "2026-07-31T00:26:06.118879",
+    "message_id": 1532439163947712556
   }
 }
