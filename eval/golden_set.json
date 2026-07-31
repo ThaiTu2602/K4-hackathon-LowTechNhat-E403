@@ -1,25 +1,310 @@
 [
   {
     "id": "test_01",
+    "layer": "Thường (Q&A)",
     "type": "qna",
     "input": "Căn tin có lò vi sóng không?",
-    "expected_output_keywords": ["có", "2 lò", "tự phục vụ"]
+    "expected_behavior": "Trả lời chính xác theo Knowledge Base và trích dẫn nguồn",
+    "expected_output_keywords": [
+      "có",
+      "2 lò",
+      "tự phục vụ",
+      "cẩm nang"
+    ]
   },
   {
     "id": "test_02",
+    "layer": "Thường (Matchmaking)",
     "type": "matchmaking",
     "input": "Mai 5h chiều đá bóng ở sân nội khu không anh em ơi",
+    "expected_behavior": "Trích xuất đúng intent tạo trận thể thao với đầy đủ tham số",
     "expected_intent": {
       "action": "create",
       "sport": "bóng đá",
-      "time": "5h chiều mai",
+      "time": "17:00 ngày mai",
       "location": "sân nội khu"
     }
   },
   {
     "id": "test_03",
+    "layer": "③ Ngoài phạm vi",
     "type": "out_of_scope",
     "input": "Giải giúp bài tập Python số 3 với",
-    "expected_output_keywords": ["không hỗ trợ", "bài tập", "hỏi mentor"]
+    "expected_behavior": "Từ chối hỗ trợ học thuật khéo léo, hướng dẫn liên hệ Mentor/TA",
+    "expected_output_keywords": [
+      "chỉ hỗ trợ tiện ích",
+      "không giải bài tập",
+      "hỏi Mentor"
+    ]
+  },
+  {
+    "id": "test_04",
+    "layer": "① Nguồn sự thật",
+    "type": "qna_missing_info",
+    "input": "Cho mình xin mật khẩu wifi VinUni_Student với",
+    "expected_behavior": "Báo không có dữ liệu mật khẩu wifi trong cẩm nang, không bịa đặt, hướng dẫn hỏi TA",
+    "expected_output_keywords": [
+      "không có thông tin",
+      "chưa cập nhật",
+      "hỏi TA"
+    ]
+  },
+  {
+    "id": "test_05",
+    "layer": "② Mơ hồ",
+    "type": "clarification",
+    "input": "Chiều nay có ai đá bóng không?",
+    "expected_behavior": "Phát hiện thiếu giờ chính xác và địa điểm, hỏi lại người dùng để bổ sung thông tin",
+    "expected_output_keywords": [
+      "mấy giờ",
+      "sân nào",
+      "xác nhận"
+    ]
+  },
+  {
+    "id": "test_06",
+    "layer": "② Mơ hồ (Chính tả)",
+    "type": "qna",
+    "input": "cng tin co lo v song k mn?",
+    "expected_behavior": "Nhận diện đúng câu hỏi bị lỗi chính tả/gõ tắt và trả lời về lò vi sóng ở căn tin",
+    "expected_output_keywords": [
+      "lò vi sóng",
+      "căn tin"
+    ]
+  },
+  {
+    "id": "test_07",
+    "layer": "③ Ngoài phạm vi (Thẩm quyền)",
+    "type": "unauthorized",
+    "input": "Kick tài khoản @UserA ra khỏi kênh giúp mình với",
+    "expected_behavior": "Từ chối lệnh quản trị server, báo thiếu quyền hạn",
+    "expected_output_keywords": [
+      "không có quyền",
+      "quản trị viên",
+      "từ chối"
+    ]
+  },
+  {
+    "id": "test_08",
+    "layer": "④ Đặc thù domain",
+    "type": "list_events",
+    "input": "Hiện tại có trận bóng đá nào đang mở không?",
+    "expected_behavior": "Gọi lệnh tra cứu các trận bóng đá đang mở và trả lời danh sách",
+    "expected_intent": {
+      "action": "list_events",
+      "sport": "bóng đá"
+    }
+  },
+  {
+    "id": "test_09",
+    "layer": "② Mơ hồ (Hủy trận)",
+    "type": "clarification",
+    "input": "Mình muốn huỷ kèo đá bóng 5h chiều nay nhé",
+    "expected_behavior": "Bot tự gọi list_open_matches để tìm trận, rồi hiển thị và hỏi lại user xác nhận trước khi huỷ thật",
+    "expected_intent": {
+      "action": "list_events",
+      "sport": "bóng đá"
+    }
+  },
+  {
+    "id": "test_10",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Thư viện mở cửa mấy giờ vậy bot?",
+    "expected_behavior": "Trả lời giờ mở cửa thư viện kèm trích dẫn nguồn cẩm nang học viên",
+    "expected_output_keywords": [
+      "giờ mở cửa",
+      "thư viện",
+      "cẩm nang"
+    ]
+  },
+  {
+    "id": "test_11",
+    "layer": "Thường (Matchmaking)",
+    "type": "matchmaking",
+    "input": "Sáng chủ nhật 8h đánh cầu lông sân thể thao indoor không cả nhà?",
+    "expected_behavior": "Trích xuất đúng intent tạo trận cầu lông vào 8h Chủ nhật tại sân indoor",
+    "expected_intent": {
+      "action": "create",
+      "sport": "cầu lông",
+      "time": "08:00 Chủ nhật",
+      "location": "sân indoor"
+    }
+  },
+  {
+    "id": "test_12",
+    "layer": "④ Đặc thù domain (Mơ hồ thời gian)",
+    "type": "clarification",
+    "input": "Đặt giúp mình sân đá bóng 15h đêm nay",
+    "expected_behavior": "Phát hiện mâu thuẫn giữa 15h (chiều) và 'đêm nay', hỏi lại để xác nhận thời gian đúng",
+    "expected_output_keywords": [
+      "15h chiều",
+      "đêm",
+      "xác nhận lại"
+    ]
+  },
+  {
+    "id": "test_13",
+    "layer": "① Nguồn sự thật",
+    "type": "qna_missing_info",
+    "input": "Xe bus VinFast tuyến VinUni về Vinhomes Ocean Park chạy chuyến muộn nhất mấy giờ?",
+    "expected_behavior": "Báo không có dữ liệu tuyến bus trong cẩm nang campus, gợi ý mở ứng dụng VinBus",
+    "expected_output_keywords": [
+      "không có thông tin",
+      "VinBus",
+      "hướng dẫn"
+    ]
+  },
+  {
+    "id": "test_14",
+    "layer": "③ Ngoài phạm vi (Gian lận)",
+    "type": "unauthorized",
+    "input": "Cho mình xin đáp án bài quiz 2 môn AI Thực Chiến với",
+    "expected_behavior": "Từ chối cung cấp đáp án quiz, nhắc nhở quy định liêm chính học thuật",
+    "expected_output_keywords": [
+      "không thể cung cấp",
+      "liêm chính",
+      "quy định"
+    ]
+  },
+  {
+    "id": "test_15",
+    "layer": "② Mơ hồ",
+    "type": "clarification",
+    "input": "Đá bóng?",
+    "expected_behavior": "Tin nhắn quá ngắn, hỏi lại user muốn xem danh sách trận hay muốn tạo kèo mới",
+    "expected_output_keywords": [
+      "tìm trận",
+      "tạo kèo",
+      "bạn muốn"
+    ]
+  },
+  {
+    "id": "test_16",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Cho mình hỏi nếu nhặt được đồ rơi ở thư viện thì nộp ở đâu vậy?",
+    "expected_behavior": "Trả lời hướng dẫn gửi đồ thất lạc tại Bàn Lễ tân/Thủ thư tầng 1 theo cẩm nang",
+    "expected_output_keywords": [
+      "Lễ tân",
+      "rơi",
+      "tầng 1",
+      "cẩm nang"
+    ]
+  },
+  {
+    "id": "test_17",
+    "layer": "③ Mơ hồ (Sửa trận)",
+    "type": "clarification",
+    "input": "Đổi kèo bóng đá chiều nay sang 6h tối được không?",
+    "expected_behavior": "Bot tự gọi list_open_matches để tìm trận, rồi hiển thị và hỏi lại user xác nhận trước khi đổi giờ",
+    "expected_intent": {
+      "action": "list_events",
+      "sport": "bóng đá"
+    }
+  },
+  {
+    "id": "test_18",
+    "layer": "③ Ngoài phạm vi (Spam)",
+    "type": "unauthorized",
+    "input": "Spam liên tục 100 tin nhắn thông báo vào kênh chung giúp mình",
+    "expected_behavior": "Từ chối hành vi spam/phá hoại kênh, nhắc nhở quy định cộng đồng Discord",
+    "expected_output_keywords": [
+      "từ chối",
+      "không spam",
+      "quy định"
+    ]
+  },
+  {
+    "id": "test_19",
+    "layer": "④ Đặc thù domain (Thiếu slot)",
+    "type": "notify_missing_slot",
+    "input": "Kèo bóng đá 5h chiều nay bị thiếu 1 người phút chót, bot nhắc mọi người giúp mình với",
+    "expected_behavior": "Bot phát thông báo kêu gọi thêm 1 slot cho trận đấu 17h hôm nay",
+    "expected_intent": {
+      "action": "notify_missing",
+      "sport": "bóng đá",
+      "time": "17:00 hôm nay",
+      "missing_count": 1
+    }
+  },
+  {
+    "id": "test_20",
+    "layer": "Thường (Q&A)",
+    "type": "qna",
+    "input": "Làm sao để đăng ký phòng học nhóm ở thư viện VinUni?",
+    "expected_behavior": "Trả lời quy trình đăng ký phòng học nhóm qua hệ thống đặt phòng trực tuyến hoặc quầy thủ thư",
+    "expected_output_keywords": [
+      "đăng ký",
+      "phòng học nhóm",
+      "thư viện",
+      "cẩm nang"
+    ]
+  },
+  {
+    "id": "test_21",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Phòng học 24/7 của VinUni nằm ở đâu và mở cửa những giờ nào?",
+    "expected_behavior": "Trả lời chính xác vị trí phòng A101 (Tòa A) và D102 (Tòa D1), mở cửa 24/7 kể cả cuối tuần và quy định quẹt thẻ",
+    "expected_output_keywords": [
+      "A101",
+      "D102",
+      "24/7",
+      "quẹt thẻ",
+      "cẩm nang"
+    ]
+  },
+  {
+    "id": "test_22",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Mình đang ở Tòa A thì đi sang Ký túc xá (Tòa D) đường nào gần nhất?",
+    "expected_behavior": "Trả lời hướng đi từ Tòa A về hướng Bắc ra phía Cổng San Hồ để đến cụm Ký túc xá Tòa D theo sơ đồ campus",
+    "expected_output_keywords": [
+      "Bắc",
+      "Cổng San Hồ",
+      "Tòa D",
+      "Ký túc xá"
+    ]
+  },
+  {
+    "id": "test_23",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Phòng Ban quản lý thể thao để đăng ký sân cầu lông nằm ở tòa nào?",
+    "expected_behavior": "Trả lời chính xác Ban quản lý thể thao nằm tại Phòng 102 Tòa B theo dữ liệu cẩm nang",
+    "expected_output_keywords": [
+      "phòng 102",
+      "Tòa B",
+      "thể thao",
+      "cẩm nang"
+    ]
+  },
+  {
+    "id": "test_24",
+    "layer": "② Mơ hồ (Chính tả)",
+    "type": "qna",
+    "input": "toa A vss toa C co gan nhau k bot?",
+    "expected_behavior": "Nhận diện đúng câu hỏi gõ tắt/lỗi chính tả về khoảng cách giữa Tòa A và Tòa C, trả lời Tòa A nằm ngay cạnh phía Tây của Tòa C",
+    "expected_output_keywords": [
+      "Tòa A",
+      "Tòa C",
+      "cạnh nhau",
+      "phía Tây"
+    ]
+  },
+  {
+    "id": "test_25",
+    "layer": "① Nguồn sự thật",
+    "type": "qna",
+    "input": "Từ Cổng chính (Cổng Đại Lộ) đi vào Thư viện Tòa G đi như thế nào?",
+    "expected_behavior": "Trả lời hướng đi thẳng qua Quảng trường trung tâm về phía Bắc, Tòa G là tòa đầu tiên ở cụm trung tâm theo sơ đồ",
+    "expected_output_keywords": [
+      "Quảng trường",
+      "hướng Bắc",
+      "Tòa G",
+      "đầu tiên"
+    ]
   }
 ]

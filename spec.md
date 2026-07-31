@@ -1,4 +1,4 @@
-# AI SPEC — VinUni Discord AI Assistant · Nhóm [Điền Tên Nhóm] · Zone [Điền Zone]
+# AI SPEC — VinUni Discord AI Assistant · Nhóm LowTech Nhất  · Zone [Điền Zone]
 Hướng: [ ] A — VLearn  [x] B — Trợ lý Học viên  [ ] C — Làn mở
 Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
 

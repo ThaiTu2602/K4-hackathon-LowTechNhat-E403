@@ -1,0 +1,64 @@
+{
+  "0937bf4c": {
+    "sport": "cầu lông",
+    "time": "thứ 6 ngày 2/8 lúc 19h tối",
+    "location": "sân cầu lông VinUni",
+    "level": "chưa rõ",
+    "creator_name": "Nguyễn Hoàng Minh - 01764",
+    "creator_id": 870717199151693834,
+    "players": {
+      "870717199151693834": "Nguyễn Hoàng Minh - 01764"
+    },
+    "target_players": 4,
+    "created_at": "23:58 30/07",
+    "created_at_iso": "2026-07-30T23:58:33.310791",
+    "message_id": 1532432231308726423
+  },
+  "3a2cdb6f": {
+    "sport": "chạy bộ",
+    "time": "8h tối ngày 4/8",
+    "location": "sân VinUni",
+    "level": "chưa rõ",
+    "creator_name": "Nguyễn Hoàng Minh - 01764",
+    "creator_id": 870717199151693834,
+    "players": {
+      "870717199151693834": "Nguyễn Hoàng Minh - 01764"
+    },
+    "target_players": 10,
+    "created_at": "00:26 31/07",
+    "created_at_iso": "2026-07-31T00:26:06.118879",
+    "message_id": 1532439163947712556
+  },
+  "f24e86ae": {
+    "sport": "bóng đá",
+    "time": "7h tối",
+    "location": "sân nội khu",
+    "level": "chưa rõ",
+    "creator_name": "T181 - Đoàn Văn Tuyền - 01374",
+    "creator_id": 1216997301008990330,
+    "players": {
+      "1216997301008990330": "T181 - Đoàn Văn Tuyền - 01374",
+      "756506914782838934": "T175-Nguyễn Quang Hướng-01858"
+    },
+    "target_players": 10,
+    "created_at": "11:42 31/07",
+    "created_at_iso": "2026-07-31T11:42:36.969564",
+    "message_id": 1532609416140947669
+  },
+  "b151d603": {
+    "sport": "đá banh",
+    "time": "4 giờ chiều nay",
+    "location": "sân bóng VinUni",
+    "level": "chưa rõ",
+    "creator_name": "vazzzz",
+    "creator_id": 481375800931647488,
+    "players": {
+      "481375800931647488": "vazzzz",
+      "731783301710217298": "Con cá đuối"
+    },
+    "target_players": 10,
+    "created_at": "11:56 31/07",
+    "created_at_iso": "2026-07-31T11:56:21.268137",
+    "message_id": 1532612873799602360
+  }
+}
