@@ -91,12 +91,48 @@ Loại: [ ] Tối ưu tính năng có sẵn  [x] Tính năng mới
   | Lần 1 | 20 | ... | ... | (Cập nhật sau khi test) |
 
 ## §8. Phân công & kế hoạch
-- **Phân công có tên:**
-  - **Tuyền:** Build hệ thống (Code Discord Bot), Tích hợp Tool Calling, Demo.
-  - **Tiến Dũng:** Chuẩn bị Evidence, xây dựng Prompt (System Message), viết Spec, chuẩn bị bộ test Golden Set.
+
+### Thành viên nhóm
+
+| STT | Họ và tên | Mã học viên | Vai trò |
+|-----|-----------|-------------|---------|
+| 1 | Nguyễn Việt Hải | 2A202601656 | **Leader** |
+| 2 | Nguyễn Hoàng Minh | 2A202601764 | Member |
+| 3 | Nguyễn Thái Tú | 2A202601504 | Member |
+| 4 | Đoàn Văn Tuyền | 2A202601374 | Member |
+
+### Phân công có tên (4 mảng chính)
+
+**Mảng 1 — Code Discord Bot + Matchmaking (Đoàn Văn Tuyền)**
+  - Build & maintain luồng chính của bot Discord (`src/bot.py`).
+  - Code module quản lý gom nhóm thể thao (`src/match_manager.py`, `data/matches.json`).
+  - Xử lý Slash Commands và tương tác Discord (buttons, embeds).
+  - Phối hợp với Nguyễn Việt Hải để tích hợp AI vào flow bot.
+
+**Mảng 2 — Tích hợp AI + Tool Calling (Leader: Nguyễn Việt Hải)**
+  - Tích hợp LLM Agent với Tool Calling thật qua Google Gemini SDK (`src/llm_handler.py`).
+  - Thiết kế hệ thống routing phân loại ý định (`src/router.py`).
+  - Xây dựng hệ thống tools cho agent (`src/tools.py`).
+  - Đảm bảo flow end-to-end: nhận tin nhắn → phân loại ý định → gọi tool/trả lời → phản hồi Discord.
+  - Tổng hợp kết quả đo, phân tích failure, điều phối demo live 5 phút (mỗi thành viên trình bày ≥1 phần).
+
+**Mảng 3 — Prompt Engineering + Knowledge Base + Golden Set (Nguyễn Thái Tú)**
+  - Thiết kế & tinh chỉnh toàn bộ system prompts (`src/prompts.py`): prompt hỏi đáp (Q&A), prompt phân loại ý định, prompt trích xuất thông tin trận, prompt agent tổng.
+  - Xây dựng & cập nhật Knowledge Base (`data/knowledge_base.txt`) — dữ liệu tiện ích nội khu (căn tin, thư viện, thẻ từ, gym, liên hệ hỗ trợ).
+  - Xây dựng bộ Golden Set ≥20 case (`eval/golden_set.json`), bao gồm case đúng, ngoài luồng, thiếu thông tin, sai chính tả, phủ đủ 4 lớp chỗ khó.
+  - Phối hợp với Nguyễn Việt Hải test & điều chỉnh prompt để giảm hallucination.
+
+**Mảng 4 — Evidence + Spec + Validation + Demo (Nguyễn Hoàng Minh)**
+  - Thu thập & hoàn thiện bằng chứng (Evidence) theo chuẩn A/B: khảo sát, mining dữ liệu, log phỏng vấn.
+  - Viết & duy trì Spec (`spec.md`) — đảm bảo đủ §1-§9.
+  - Viết script chạy eval (`eval/run_eval.py`), ghi kết quả các lượt chạy vào `eval/runs/`.
+  - Chuẩn bị & thực hiện vòng validation CP5: liên hệ willing users, quan sát & log nguyên văn phản hồi.
+  - Chuẩn bị demo slides (`demo-slides.pdf`) theo cấu trúc 6 trang.
+
 - **Willing users + kế hoạch vòng validation CP5:**
-  - Danh sách dự kiến: 3 bạn trong khóa AI (Sẽ điền tên thật sau).
-  - Ai log: Tiến Dũng sẽ quan sát và log lại quá trình người dùng thử nghiệm tương tác với Bot trên kênh Discord test.
+  - Danh sách dự kiến: ≥3 bạn học viên trong khoá AI (cùng zone hoặc zone khác để đổi chéo test).
+  - Mỗi phiên 10 phút/người: giao task thật → im lặng quan sát → hỏi 3 câu: (1) "Điều gì khó hiểu hoặc khó chịu nhất?", (2) "Kết quả này bạn có tin không — vì sao?", (3) "Bạn có dùng thật không — vì sao / vì sao chưa?".
+  - Ai log: Nguyễn Hoàng Minh sẽ quan sát và log lại quá trình người dùng thử nghiệm tương tác với Bot trên kênh Discord test. Kết quả lưu vào `validation/`.
 - **Multi-prototype:**
   - **Phương án 1:** Bot chỉ trả lời khi bị tag tên (`@bot`).
   - **Phương án 2:** Bot đọc mọi tin nhắn trong kênh cụ thể (VD: `#the-thao`), nếu thấy ý định rủ rê sẽ tự động nhảy vào.
