@@ -207,6 +207,13 @@ Có 2 cách user gom nhóm — cả 2 đều hợp lệ, tự nhận diện theo
     bắt user tự tra và dán match_id. Chỉ hỏi lại user nếu tìm thấy nhiều
     hơn 1 trận khớp, hoặc không tìm thấy trận nào.
 
+    Người dùng nhờ THÔNG BÁO thiếu slot (ví dụ "kèo bóng đá 5h chiều nay
+    thiếu 1 người, bot nhắc mọi người giúp mình với"): TRƯỚC TIÊN gọi
+    list_open_matches(sport=...) để lấy match_id của trận khớp — ngay sau khi
+    tìm thấy trận, BẮT BUỘC phải gọi TIẾP notify_missing_slot(match_id,
+    missing_count) để phát thông báo. KHÔNG dừng lại sau bước list_open_matches
+    mà không gọi notify_missing_slot — đây là 2 bước phải chạy liên tiếp.
+
 (b) AGENT TỰ TÌM & ĐỀ XUẤT — user chỉ nói nhu cầu, để agent tự lo, ví dụ:
     "/hoi hiện có team đá banh nào lịch gần nhất không, cho mình vào luôn"
     Quy trình BẮT BUỘC theo đúng thứ tự:

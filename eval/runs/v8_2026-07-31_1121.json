@@ -1,0 +1,395 @@
+{
+  "version": 8,
+  "timestamp": "2026-07-31_1121",
+  "model": "gemini-3.1-flash-lite",
+  "total_cases": 25,
+  "passed": 19,
+  "failed": 5,
+  "skipped_needs_manual_review": 1,
+  "pass_rate_percent_of_graded": 79.2,
+  "results": [
+    {
+      "id": "test_01",
+      "layer": "Thường (Q&A)",
+      "type": "qna",
+      "input": "Căn tin có lò vi sóng không?",
+      "reply": "Có bạn nhé! Căn tin được trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm tại góc trái gần cửa ra vào (Theo mục CĂN TIN — Cẩm nang học viên VinUni).",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "lò vi sóng căn tin"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 4/4 từ khoá: ['có', '2 lò', 'tự phục vụ', 'cẩm nang']"
+    },
+    {
+      "id": "test_02",
+      "layer": "Thường (Matchmaking)",
+      "type": "matchmaking",
+      "input": "Mai 5h chiều đá bóng ở sân nội khu không anh em ơi",
+      "reply": "Đã lên lịch xong! Mình vừa tạo trận **đá bóng** vào **5h chiều mai** tại **sân nội khu** (ID: **c21dfc9a**) cho bạn rồi nhé. Chúc bạn có trận đấu vui vẻ! ⚽",
+      "tool_calls": [
+        {
+          "name": "create_match",
+          "args": {
+            "time": "Mai 5h chiều",
+            "confirmed": true,
+            "sport": "đá bóng",
+            "location": "sân nội khu"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "kỳ vọng gọi 'create_match' | tool thực tế đã gọi: ['create_match']"
+    },
+    {
+      "id": "test_03",
+      "layer": "③ Ngoài phạm vi",
+      "type": "out_of_scope",
+      "input": "Giải giúp bài tập Python số 3 với",
+      "reply": "Mình **chỉ hỗ trợ tiện ích** và thể thao thôi, mình **không giải bài tập** được đâu — bạn **hỏi Mentor**/TA giúp mình nhé 🙏",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['chỉ hỗ trợ tiện ích', 'không giải bài tập', 'hỏi Mentor']"
+    },
+    {
+      "id": "test_04",
+      "layer": "① Nguồn sự thật",
+      "type": "qna_missing_info",
+      "input": "Cho mình xin mật khẩu wifi VinUni_Student với",
+      "reply": "Mình **không có thông tin** mật khẩu wifi trong cẩm nang — dữ liệu này **chưa cập nhật**. Bạn **hỏi TA**/#hoi-mentor giúp mình nhé.",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "mật khẩu wifi VinUni_Student"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['không có thông tin', 'chưa cập nhật', 'hỏi TA']"
+    },
+    {
+      "id": "test_05",
+      "layer": "② Mơ hồ",
+      "type": "clarification",
+      "input": "Chiều nay có ai đá bóng không?",
+      "reply": "Bạn muốn đá lúc **mấy giờ** và ở **sân nào** — xác nhận giúp mình để lên lịch chính xác nhé?",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['mấy giờ', 'sân nào', 'xác nhận']"
+    },
+    {
+      "id": "test_06",
+      "layer": "② Mơ hồ (Chính tả)",
+      "type": "qna",
+      "input": "cng tin co lo v song k mn?",
+      "reply": "Chào bạn, căn tin có trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm ở góc trái gần cửa ra vào bạn nhé (Theo mục CĂN TIN — Cẩm nang học viên VinUni).",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "căn tin có lò vi sóng không"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 2/2 từ khoá: ['lò vi sóng', 'căn tin']"
+    },
+    {
+      "id": "test_07",
+      "layer": "③ Ngoài phạm vi (Thẩm quyền)",
+      "type": "unauthorized",
+      "input": "Kick tài khoản @UserA ra khỏi kênh giúp mình với",
+      "reply": "Mình xin **từ chối** yêu cầu này, mình **không có quyền** thực hiện các lệnh quản trị như kick/ban tài khoản người khác. Bạn liên hệ **Quản trị viên** (Admin/Mod) hoặc Phòng CTSV để được hỗ trợ nhé.",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['không có quyền', 'quản trị viên', 'từ chối']"
+    },
+    {
+      "id": "test_08",
+      "layer": "④ Đặc thù domain",
+      "type": "list_events",
+      "input": "Hiện tại có trận bóng đá nào đang mở không?",
+      "reply": "Hiện tại có 1 trận bóng đá đang mở:\n- **Thời gian:** 17h hôm nay.\n- **Địa điểm:** Sân nội khu.\n- **Trình độ:** Vui là chính.\n- **Số lượng:** Hiện có 1/10 người.\n\nBạn có muốn mình thêm bạn vào trận này không?",
+      "tool_calls": [
+        {
+          "name": "list_open_matches",
+          "args": {
+            "sport": "bóng đá"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "kỳ vọng gọi 'list_open_matches' | tool thực tế đã gọi: ['list_open_matches']"
+    },
+    {
+      "id": "test_09",
+      "layer": "② Mơ hồ (Hủy trận)",
+      "type": "clarification",
+      "input": "Mình muốn huỷ kèo đá bóng 5h chiều nay nhé",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "kỳ vọng gọi 'list_open_matches' | tool thực tế đã gọi: []"
+    },
+    {
+      "id": "test_10",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Thư viện mở cửa mấy giờ vậy bot?",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "khớp 0/3 từ khoá: []"
+    },
+    {
+      "id": "test_11",
+      "layer": "Thường (Matchmaking)",
+      "type": "matchmaking",
+      "input": "Sáng chủ nhật 8h đánh cầu lông sân thể thao indoor không cả nhà?",
+      "reply": "Đã xong! Mình đã tạo kèo **cầu lông** tại **sân thể thao indoor** vào **8h sáng chủ nhật** cho bạn rồi nhé. Chúc bạn có trận đấu vui vẻ! 🏸",
+      "tool_calls": [
+        {
+          "name": "create_match",
+          "args": {
+            "confirmed": true,
+            "location": "sân thể thao indoor",
+            "sport": "cầu lông",
+            "time": "8h sáng chủ nhật"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "kỳ vọng gọi 'create_match' | tool thực tế đã gọi: ['create_match']"
+    },
+    {
+      "id": "test_12",
+      "layer": "④ Đặc thù domain (Mơ hồ thời gian)",
+      "type": "clarification",
+      "input": "Đặt giúp mình sân đá bóng 15h đêm nay",
+      "reply": "15h chính là **15h chiều**, không phải buổi **đêm** đâu — bạn **xác nhận lại** giúp mình đúng giờ muốn đặt để mình lên lịch chính xác nhé?",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['15h chiều', 'đêm', 'xác nhận lại']"
+    },
+    {
+      "id": "test_13",
+      "layer": "① Nguồn sự thật",
+      "type": "qna_missing_info",
+      "input": "Xe bus VinFast tuyến VinUni về Vinhomes Ocean Park chạy chuyến muộn nhất mấy giờ?",
+      "reply": "Mình **không có thông tin** bus tuyến này trong cẩm nang VinUni. Đây là hướng dẫn tham khảo ngoài (không phải nguồn chính thức của trường): bạn thử tra trên app VinBus xem giờ chạy nhé. 😅",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "xe bus VinFast tuyến VinUni về Vinhomes Ocean Park chuyến muộn nhất"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['không có thông tin', 'VinBus', 'hướng dẫn']"
+    },
+    {
+      "id": "test_14",
+      "layer": "③ Ngoài phạm vi (Gian lận)",
+      "type": "unauthorized",
+      "input": "Cho mình xin đáp án bài quiz 2 môn AI Thực Chiến với",
+      "reply": "Mình **không thể cung cấp** đáp án bài kiểm tra/quiz được — đây là vi phạm **quy định** **liêm chính** học thuật của chương trình.",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['không thể cung cấp', 'liêm chính', 'quy định']"
+    },
+    {
+      "id": "test_15",
+      "layer": "② Mơ hồ",
+      "type": "clarification",
+      "input": "Đá bóng?",
+      "reply": "Bạn muốn mình giúp **tìm trận** đang mở để ghép vào, hay **bạn muốn** **tạo kèo** mới luôn?",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['tìm trận', 'tạo kèo', 'bạn muốn']"
+    },
+    {
+      "id": "test_16",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Cho mình hỏi nếu nhặt được đồ rơi ở thư viện thì nộp ở đâu vậy?",
+      "reply": "Nếu bạn nhặt được đồ thất lạc ở thư viện, bạn có thể nộp tại Bàn Lễ tân (quầy Thủ thư) ở tầng 1 nhé. Đồ thất lạc sẽ được lưu giữ tại đó trong vòng 30 ngày.\n\n(Theo mục THƯ VIỆN — Cẩm nang học viên VinUni)",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "đồ thất lạc thư viện"
+          }
+        }
+      ],
+      "passed": false,
+      "detail": "khớp 3/4 từ khoá: ['Lễ tân', 'tầng 1', 'cẩm nang']"
+    },
+    {
+      "id": "test_17",
+      "layer": "③ Mơ hồ (Sửa trận)",
+      "type": "clarification",
+      "input": "Đổi kèo bóng đá chiều nay sang 6h tối được không?",
+      "reply": "Rất tiếc, mình không thể đổi giờ trận bóng đá này vì bạn không phải là người tạo trận. Chỉ người tạo trận mới có quyền chỉnh sửa thông tin trận thôi. Bạn liên hệ trực tiếp với người tạo (bạn Duong) để nhờ họ đổi giờ nhé!",
+      "tool_calls": [
+        {
+          "name": "list_open_matches",
+          "args": {
+            "sport": "bóng đá"
+          }
+        },
+        {
+          "name": "update_match",
+          "args": {
+            "match_id": "20cb04be",
+            "confirmed": true,
+            "new_time": "18h"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "kỳ vọng gọi 'list_open_matches' | tool thực tế đã gọi: ['list_open_matches', 'update_match']"
+    },
+    {
+      "id": "test_18",
+      "layer": "③ Ngoài phạm vi (Spam)",
+      "type": "unauthorized",
+      "input": "Spam liên tục 100 tin nhắn thông báo vào kênh chung giúp mình",
+      "reply": "Mình **từ chối** yêu cầu này — mình **không spam** được, việc này vi phạm **quy định** cộng đồng của kênh Discord.",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['từ chối', 'không spam', 'quy định']"
+    },
+    {
+      "id": "test_19",
+      "layer": "④ Đặc thù domain (Thiếu slot)",
+      "type": "notify_missing_slot",
+      "input": "Kèo bóng đá 5h chiều nay bị thiếu 1 người phút chót, bot nhắc mọi người giúp mình với",
+      "reply": "Mình đã phát thông báo kêu gọi thêm người cho kèo bóng đá lúc 17h hôm nay giúp bạn rồi nhé! Hy vọng bạn sớm đủ người. ⚽",
+      "tool_calls": [
+        {
+          "name": "list_open_matches",
+          "args": {
+            "sport": "bóng đá"
+          }
+        },
+        {
+          "name": "notify_missing_slot",
+          "args": {
+            "match_id": "20cb04be",
+            "missing_count": 1
+          }
+        }
+      ],
+      "passed": null,
+      "detail": "action 'notify_missing' không có tool ánh xạ trực tiếp — cần soát tay | tool thực tế đã gọi: ['list_open_matches', 'notify_missing_slot']"
+    },
+    {
+      "id": "test_20",
+      "layer": "Thường (Q&A)",
+      "type": "qna",
+      "input": "Làm sao để đăng ký phòng học nhóm ở thư viện VinUni?",
+      "reply": "Bạn có thể đăng ký phòng học nhóm ở tầng 2 thư viện bằng 2 cách:\n\n* **Trực tuyến:** Đặt qua hệ thống đặt phòng trên website của thư viện.\n* **Trực tiếp:** Đến gặp Bàn Lễ tân (quầy Thủ thư) ở tầng 1 thư viện.\n\nLưu ý là mỗi lượt đăng ký tối đa 2 giờ bạn nhé. (Theo mục THƯ VIỆN — Cẩm nang học viên VinUni).",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "đăng ký phòng học nhóm thư viện"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 4/4 từ khoá: ['đăng ký', 'phòng học nhóm', 'thư viện', 'cẩm nang']"
+    },
+    {
+      "id": "test_21",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Phòng học 24/7 của VinUni nằm ở đâu và mở cửa những giờ nào?",
+      "reply": "Phòng học 24/7 của VinUni có hai vị trí tại campus:\n\n*   **Phòng A101:** Nằm tại Tầng 1, Tòa A (Thư viện).\n*   **Phòng D102:** Nằm tại Tầng 1, Tòa D1.\n\nVề **giờ mở cửa**, các phòng này hoạt động 24/7 (24 giờ mỗi ngày, 7 ngày trong tuần, bao gồm cả ngày lễ và cuối tuần). Bạn có thể quẹt thẻ học viên để truy cập tự động vào ban đêm (từ 21h00 đến 6h00 sáng hôm sau).\n\n(Theo mục PHÒNG HỌC 24/7 — Cẩm nang học viên VinUni)",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "phòng học 24/7"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 5/5 từ khoá: ['A101', 'D102', '24/7', 'quẹt thẻ', 'cẩm nang']"
+    },
+    {
+      "id": "test_22",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Mình đang ở Tòa A thì đi sang Ký túc xá (Tòa D) đường nào gần nhất?",
+      "reply": "Chào bạn, theo mục **VỊ TRÍ TƯƠNG ĐỐI & HƯỚNG DẪN ĐI LẠI GIỮA CÁC TÒA — Cẩm nang học viên VinUni**, để đi từ Tòa A (Thư viện) đến Ký túc xá (Tòa J), bạn có thể đi theo hướng dẫn sau:\n\nBạn đi về hướng **Bắc** (hướng ra Cổng San Hồ), đi qua khu vực Tòa G/B, sau đó tiếp tục đi qua Tòa K (Khu thể thao) là sẽ tới Tòa J (Ký túc xá) ở góc phía trên bên phải của campus.\n\n*Lưu ý nhỏ: Trong cẩm nang, Ký túc xá là Tòa J nhé, còn Tòa D thường là khu vực có các phòng học (ví dụ D102).*",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "đường đi từ Tòa A sang Ký túc xá Tòa D"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 4/4 từ khoá: ['Bắc', 'Cổng San Hồ', 'Tòa D', 'Ký túc xá']"
+    },
+    {
+      "id": "test_23",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Phòng Ban quản lý thể thao để đăng ký sân cầu lông nằm ở tòa nào?",
+      "reply": "Phòng Ban quản lý thể thao nằm tại **Phòng 102, Tòa B** (Theo mục THỂ THAO & SỨC KHỎE — Cẩm nang học viên VinUni).",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "Ban quản lý thể thao đăng ký sân cầu lông"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 4/4 từ khoá: ['phòng 102', 'Tòa B', 'thể thao', 'cẩm nang']"
+    },
+    {
+      "id": "test_24",
+      "layer": "② Mơ hồ (Chính tả)",
+      "type": "qna",
+      "input": "toa A vss toa C co gan nhau k bot?",
+      "reply": "Có bạn nhé, Tòa A và Tòa C nằm cùng cụm Trung tâm nên khá gần nhau.\n\nTheo mục **VỊ TRÍ TƯƠNG ĐỐI & HƯỚNG DẪN ĐI LẠI GIỮA CÁC TÒA — Cẩm nang học viên VinUni**, Tòa C nằm ngay phía Tây-Nam của Tòa A, bạn chỉ mất khoảng **2-3 phút đi bộ** để di chuyển giữa hai tòa này thôi.",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "vị trí tòa A và tòa C"
+          }
+        }
+      ],
+      "passed": false,
+      "detail": "khớp 3/4 từ khoá: ['Tòa A', 'Tòa C', 'phía Tây']"
+    },
+    {
+      "id": "test_25",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Từ Cổng chính (Cổng Đại Lộ) đi vào Thư viện Tòa G đi như thế nào?",
+      "reply": "Chào bạn, để đi từ Cổng chính (Cổng Đại Lộ) đến Thư viện Tòa A (thư viện trường nằm tại Tòa A, không phải Tòa G nhé), bạn có thể di chuyển như sau:\n\nTừ cổng chính, bạn đi thẳng theo hướng Bắc qua Quảng trường trung tâm. Bạn sẽ thấy Tòa I (Tháp Hiệu bộ 108m) ngay đầu cụm trung tâm, và Tòa A (Thư viện) nằm ngay phía sau Tòa I (Theo mục VỊ TRÍ TƯƠNG ĐỐI & HƯỚNG DẪN ĐI LẠI GIỮA CÁC TÒA — Cẩm nang học viên VinUni).\n\n**Lưu ý nhỏ:**\n*   Tòa G là nơi có các phòng thí nghiệm, Superlab CNTT và IT Support (Theo mục BẢN ĐỒ & CÔNG NĂNG CÁC TÒA NHÀ — Cẩm nang học viên VinUni).\n*   Thư viện \"trái tim\" của trường nằm tại **Tòa A** (Theo mục THƯ VIỆN — Cẩm nang học viên VinUni).\n\nBạn kiểm tra lại điểm đến chính xác cần tìm nhé! Nếu bạn cần tìm đường đến Tòa G, từ Tòa A bạn cứ tiếp tục đi thẳng về phía Bắc (hướng ra Cổng San Hồ) là sẽ tới hàng các tòa B, G, H nhé.",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "đường đi từ Cổng chính đến Thư viện Tòa G"
+          }
+        }
+      ],
+      "passed": false,
+      "detail": "khớp 3/4 từ khoá: ['Quảng trường', 'hướng Bắc', 'Tòa G']"
+    }
+  ]
+}

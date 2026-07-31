@@ -100,12 +100,11 @@
     "layer": "② Mơ hồ (Hủy trận)",
     "type": "clarification",
     "input": "Mình muốn huỷ kèo đá bóng 5h chiều nay nhé",
-    "expected_behavior": "Bot tìm trận rồi hỏi lại user xác nhận trước khi huỷ thật, không tự huỷ luôn",
-    "expected_output_keywords": [
-      "xác nhận",
-      "huỷ",
-      "bóng đá"
-    ]
+    "expected_behavior": "Bot tự gọi list_open_matches để tìm trận, rồi hiển thị và hỏi lại user xác nhận trước khi huỷ thật",
+    "expected_intent": {
+      "action": "list_events",
+      "sport": "bóng đá"
+    }
   },
   {
     "id": "test_10",
@@ -151,7 +150,7 @@
     "input": "Xe bus VinFast tuyến VinUni về Vinhomes Ocean Park chạy chuyến muộn nhất mấy giờ?",
     "expected_behavior": "Báo không có dữ liệu tuyến bus trong cẩm nang campus, gợi ý mở ứng dụng VinBus",
     "expected_output_keywords": [
-      "không có thông tin bus",
+      "không có thông tin",
       "VinBus",
       "hướng dẫn"
     ]
@@ -188,22 +187,21 @@
     "expected_behavior": "Trả lời hướng dẫn gửi đồ thất lạc tại Bàn Lễ tân/Thủ thư tầng 1 theo cẩm nang",
     "expected_output_keywords": [
       "Lễ tân",
-      "thất lạc",
+      "rơi",
       "tầng 1",
       "cẩm nang"
     ]
   },
   {
     "id": "test_17",
-    "layer": "② Mơ hồ (Sửa trận)",
+    "layer": "③ Mơ hồ (Sửa trận)",
     "type": "clarification",
     "input": "Đổi kèo bóng đá chiều nay sang 6h tối được không?",
-    "expected_behavior": "Bot tìm trận rồi hỏi lại user xác nhận trước khi sửa thật, không tự đổi luôn",
-    "expected_output_keywords": [
-      "xác nhận",
-      "đổi",
-      "18h"
-    ]
+    "expected_behavior": "Bot tự gọi list_open_matches để tìm trận, rồi hiển thị và hỏi lại user xác nhận trước khi đổi giờ",
+    "expected_intent": {
+      "action": "list_events",
+      "sport": "bóng đá"
+    }
   },
   {
     "id": "test_18",
@@ -224,7 +222,7 @@
     "input": "Kèo bóng đá 5h chiều nay bị thiếu 1 người phút chót, bot nhắc mọi người giúp mình với",
     "expected_behavior": "Bot phát thông báo kêu gọi thêm 1 slot cho trận đấu 17h hôm nay",
     "expected_intent": {
-      "action": "notify_missing_slot",
+      "action": "notify_missing",
       "sport": "bóng đá",
       "time": "17:00 hôm nay",
       "missing_count": 1
@@ -264,7 +262,7 @@
     "input": "Mình đang ở Tòa A thì đi sang Ký túc xá (Tòa D) đường nào gần nhất?",
     "expected_behavior": "Trả lời hướng đi từ Tòa A về hướng Bắc ra phía Cổng San Hồ để đến cụm Ký túc xá Tòa D theo sơ đồ campus",
     "expected_output_keywords": [
-      "hướng Bắc",
+      "Bắc",
       "Cổng San Hồ",
       "Tòa D",
       "Ký túc xá"

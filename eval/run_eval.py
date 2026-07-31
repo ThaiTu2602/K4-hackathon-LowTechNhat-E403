@@ -136,7 +136,7 @@ def run() -> None:
         status = "PASS" if passed is True else ("FAIL" if passed is False else "SKIP")
         print(f"[{case['id']:8}] {status:4} — {detail}")
 
-        if i in (7, 15):
+        if i in (6, 12, 18):
             print(f"Đã chạy {i + 1} test, tạm dừng 60 giây để tránh lỗi quá giới hạn (Rate Limit)...")
             time.sleep(60)
 
