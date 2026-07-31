@@ -3,6 +3,7 @@ import uuid
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
+import threading
 
 # Import config từ file tools.py (tập trung cấu hình)
 from tools import DEFAULT_SLOTS, SPORT_EMOJI_MAP, DEFAULT_SPORT_STYLE, get_min_players
@@ -37,6 +38,7 @@ class MatchManager:
             base_dir = Path(__file__).resolve().parent.parent
             data_path = base_dir / "data" / "matches.json"
         self.data_path = Path(data_path)
+        self.lock = threading.Lock()
 
         # Lưu trữ các trận đấu đang mở.
         # Key: match_id (str), Value: dict chứa thông tin trận.
@@ -127,21 +129,22 @@ class MatchManager:
         target_players = DEFAULT_SLOTS.get(sport.lower(), 10)  # sức chứa TỐI ĐA
         min_players = get_min_players(sport)  # sức chứa TỐI THIỂU để "chơi được"
 
-        self.active_matches[match_id] = {
-            "sport": sport,
-            "time": time,
-            "location": location,
-            "level": level,
-            "creator_name": creator_name,
-            "creator_id": creator_id,
-            "players": {creator_id: creator_name},  # Dict {user_id: user_name}
-            "target_players": target_players,
-            "min_players": min_players,
-            "created_at": datetime.now().strftime("%H:%M %d/%m"),
-            "created_at_iso": datetime.now().isoformat(),
-            "message_id": None,  # Sẽ gán sau khi gửi embed lên Discord
-        }
-        self._save()
+        with self.lock:
+            self.active_matches[match_id] = {
+                "sport": sport,
+                "time": time,
+                "location": location,
+                "level": level,
+                "creator_name": creator_name,
+                "creator_id": creator_id,
+                "players": {creator_id: creator_name},  # Dict {user_id: user_name}
+                "target_players": target_players,
+                "min_players": min_players,
+                "created_at": datetime.now().strftime("%H:%M %d/%m"),
+                "created_at_iso": datetime.now().isoformat(),
+                "message_id": None,  # Sẽ gán sau khi gửi embed lên Discord
+            }
+            self._save()
         return True, match_id
 
     # ----- SỬA TRẬN (đổi giờ/sân/môn sau khi đã tạo) -----
@@ -162,27 +165,28 @@ class MatchManager:
         if match_id not in self.active_matches:
             return False, "❌ Không tìm thấy trận này."
 
-        match = self.active_matches[match_id]
-        if user_id != match["creator_id"]:
-            return False, "⛔ Chỉ người tạo trận mới có quyền sửa!"
+        with self.lock:
+            match = self.active_matches[match_id]
+            if user_id != match["creator_id"]:
+                return False, "⛔ Chỉ người tạo trận mới có quyền sửa!"
 
-        changes = []
-        if new_time and new_time != match["time"]:
-            changes.append(f"🕐 {match['time']} → **{new_time}**")
-            match["time"] = new_time
-        if new_location and new_location != match["location"]:
-            changes.append(f"📍 {match['location']} → **{new_location}**")
-            match["location"] = new_location
-        if new_sport and new_sport != match["sport"]:
-            changes.append(f"🏅 {match['sport']} → **{new_sport}**")
-            match["sport"] = new_sport
-            match["target_players"] = DEFAULT_SLOTS.get(new_sport.lower(), match["target_players"])
-            match["min_players"] = get_min_players(new_sport)
+            changes = []
+            if new_time and new_time != match["time"]:
+                changes.append(f"🕐 {match['time']} → **{new_time}**")
+                match["time"] = new_time
+            if new_location and new_location != match["location"]:
+                changes.append(f"📍 {match['location']} → **{new_location}**")
+                match["location"] = new_location
+            if new_sport and new_sport != match["sport"]:
+                changes.append(f"🏅 {match['sport']} → **{new_sport}**")
+                match["sport"] = new_sport
+                match["target_players"] = DEFAULT_SLOTS.get(new_sport.lower(), match["target_players"])
+                match["min_players"] = get_min_players(new_sport)
 
-        if not changes:
-            return False, "⚠️ Không có gì để đổi cả — bạn muốn sửa giờ, sân hay môn?"
+            if not changes:
+                return False, "⚠️ Không có gì để đổi cả — bạn muốn sửa giờ, sân hay môn?"
 
-        self._save()
+            self._save()
         return True, "✏️ Đã cập nhật trận:\n" + "\n".join(changes)
 
     # ----- THAM GIA TRẬN -----
@@ -193,17 +197,18 @@ class MatchManager:
         if match_id not in self.active_matches:
             return False, "❌ Không tìm thấy trận này. Gõ `/xem-tran` để xem danh sách trận đang mở."
 
-        match = self.active_matches[match_id]
-        if user_id in match["players"]:
-            return False, "⚠️ Bạn đã tham gia trận này rồi!"
+        with self.lock:
+            match = self.active_matches[match_id]
+            if user_id in match["players"]:
+                return False, "⚠️ Bạn đã tham gia trận này rồi!"
 
-        if len(match["players"]) >= match["target_players"]:
-            return False, "⚠️ Trận đã đủ người rồi!"
+            if len(match["players"]) >= match["target_players"]:
+                return False, "⚠️ Trận đã đủ người rồi!"
 
-        match["players"][user_id] = user_name
-        current = len(match["players"])
-        target = match["target_players"]
-        self._save()
+            match["players"][user_id] = user_name
+            current = len(match["players"])
+            target = match["target_players"]
+            self._save()
         return True, f"✅ **{user_name}** đã tham gia! ({current}/{target} người)"
 
     # ----- RỜI TRẬN -----
@@ -217,31 +222,33 @@ class MatchManager:
         if match_id not in self.active_matches:
             return False, "❌ Không tìm thấy trận này."
 
-        match = self.active_matches[match_id]
-        if user_id not in match["players"]:
-            return False, "⚠️ Bạn chưa tham gia trận này."
+        with self.lock:
+            match = self.active_matches[match_id]
+            if user_id not in match["players"]:
+                return False, "⚠️ Bạn chưa tham gia trận này."
 
-        # Không cho người tạo rời (phải huỷ trận)
-        if user_id == match["creator_id"]:
-            return False, "⚠️ Bạn là người tạo trận, hãy dùng `/huy-tran` để huỷ."
+            # Không cho người tạo rời (phải huỷ trận)
+            if user_id == match["creator_id"]:
+                return False, "⚠️ Bạn là người tạo trận, hãy dùng `/huy-tran` để huỷ."
 
-        # Khoá rời trận trong vòng 1 tiếng trước giờ bắt đầu — tránh vỡ kèo
-        # phút chót. Chỉ khoá khi đoán được giờ bắt đầu rõ ràng từ dữ liệu
-        # trận (không suy diễn nếu giờ ghi quá mơ hồ).
-        start_dt = resolve_match_datetime(match["time"])
-        if start_dt is not None:
-            minutes_left = (start_dt - datetime.now()).total_seconds() / 60
-            if 0 <= minutes_left <= LEAVE_LOCK_MINUTES_BEFORE_START:
-                return False, (
-                    f"⛔ Trận sắp bắt đầu trong vòng {LEAVE_LOCK_MINUTES_BEFORE_START} phút nữa "
-                    f"({match['time']}) — không thể rời lúc này để tránh vỡ kèo phút chót, bạn thông cảm nhé."
-                )
+            # Khoá rời trận trong vòng 1 tiếng trước giờ bắt đầu — tránh vỡ kèo
+            # phút chót. Chỉ khoá khi đoán được giờ bắt đầu rõ ràng từ dữ liệu
+            # trận (không suy diễn nếu giờ ghi quá mơ hồ).
+            start_dt = resolve_match_datetime(match["time"])
+            if start_dt is not None:
+                minutes_left = (start_dt - datetime.now()).total_seconds() / 60
+                if 0 <= minutes_left <= LEAVE_LOCK_MINUTES_BEFORE_START:
+                    return False, (
+                        f"⛔ Trận sắp bắt đầu trong vòng {LEAVE_LOCK_MINUTES_BEFORE_START} phút nữa "
+                        f"({match['time']}) — không thể rời lúc này để tránh vỡ kèo phút chót, bạn thông cảm nhé."
+                    )
 
-        was_full = len(match["players"]) >= match["target_players"]
-        del match["players"][user_id]
-        self._save()
+            was_full = len(match["players"]) >= match["target_players"]
+            del match["players"][user_id]
+            self._save()
 
-        current, target = len(match["players"]), match["target_players"]
+            current, target = len(match["players"]), match["target_players"]
+            
         if was_full:
             return True, (
                 f"👋 Đã rời trận. Trận này vừa **đủ người xong lại thiếu** "
@@ -255,12 +262,13 @@ class MatchManager:
         if match_id not in self.active_matches:
             return False, "❌ Không tìm thấy trận này."
 
-        match = self.active_matches[match_id]
-        if user_id != match["creator_id"]:
-            return False, "⛔ Chỉ người tạo trận mới có quyền huỷ!"
+        with self.lock:
+            match = self.active_matches[match_id]
+            if user_id != match["creator_id"]:
+                return False, "⛔ Chỉ người tạo trận mới có quyền huỷ!"
 
-        del self.active_matches[match_id]
-        self._save()
+            del self.active_matches[match_id]
+            self._save()
         return True, "🗑️ Trận đã được huỷ thành công."
 
     # ----- KIỂM TRA ĐỦ NGƯỜI (đầy hẳn, hết chỗ — dùng target_players/max) -----

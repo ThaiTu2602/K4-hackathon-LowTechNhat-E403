@@ -20,6 +20,18 @@ from PIL import Image, ImageDraw, ImageFont
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 OUT_DIR = BASE_DIR / "data" / "tmp_diagrams"
+FONT_DIR = BASE_DIR / "data" / "fonts"
+
+# Ảnh vẽ ra bị NGƯỜI DÙNG THẬT báo là "rất mờ" — nguyên nhân thật KHÔNG
+# phải do độ phân giải mà do _load_font() trước đây chỉ trỏ tới đường dẫn
+# font hệ điều hành macOS (/System/Library/Fonts/...). Trên máy khác (Linux
+# server chạy bot thật, máy đồng đội không phải Mac...) đường dẫn đó không
+# tồn tại, Pillow âm thầm rơi về ImageFont.load_default() — 1 font bitmap
+# CỐ ĐỊNH ~10px, không scale được, nhìn như bị mờ/vỡ nét khi đặt trong ảnh
+# lớn. Fix: đóng gói THẲNG font Noto Sans (đọc được đầy đủ dấu tiếng Việt,
+# giấy phép SIL Open Font License — được phép đi kèm trong repo) ngay trong
+# data/fonts/, dùng đường dẫn tương đối nên chạy đúng trên MỌI máy.
+SCALE = 2  # render ở độ phân giải gấp đôi rồi để Discord tự co lại -> nét hơn khi phóng to
 
 # ---- Toạ độ lưới: x = Tây(0) -> Đông tăng dần; y = Nam(0) -> Bắc tăng dần ----
 POSITIONS = {
@@ -134,9 +146,21 @@ def _shortest_path(start: str, end: str):
 
 
 def _load_font(size: int, bold: bool = False):
-    name = "Arial Bold.ttf" if bold else "Arial Unicode.ttf"
+    """
+    Thử lần lượt: (1) font Noto Sans đóng gói SẴN trong repo (đọc đủ dấu
+    tiếng Việt, chạy được trên MỌI máy vì không phụ thuộc OS) — ưu tiên
+    cao nhất; (2) font Arial của macOS (chỉ có nếu chạy trên Mac); (3) font
+    bitmap mặc định của Pillow (LUÔN có, nhưng cỡ cố định ~10px, nhìn mờ/vỡ
+    nét — chỉ dùng khi cả 2 lựa chọn trên đều thất bại).
+    """
+    bundled_name = "NotoSans-Bold.ttf" if bold else "NotoSans-Regular.ttf"
     try:
-        return ImageFont.truetype(f"/System/Library/Fonts/Supplemental/{name}", size)
+        return ImageFont.truetype(str(FONT_DIR / bundled_name), size)
+    except OSError:
+        pass
+    mac_name = "Arial Bold.ttf" if bold else "Arial Unicode.ttf"
+    try:
+        return ImageFont.truetype(f"/System/Library/Fonts/Supplemental/{mac_name}", size)
     except OSError:
         return ImageFont.load_default()
 
@@ -152,11 +176,11 @@ def render_route_image(from_code: str, to_code: str) -> Path:
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    margin, cell = 90, 130
+    margin, cell = 90 * SCALE, 130 * SCALE
     xs = [p[0] for p in POSITIONS.values()]
     ys = [p[1] for p in POSITIONS.values()]
-    width = int(margin * 2 + max(xs) * cell + 40)
-    height = int(margin * 2 + max(ys) * cell + 60)
+    width = int(margin * 2 + max(xs) * cell + 40 * SCALE)
+    height = int(margin * 2 + max(ys) * cell + 60 * SCALE)
 
     def to_px(code):
         x, y = POSITIONS[code]
@@ -164,20 +188,22 @@ def render_route_image(from_code: str, to_code: str) -> Path:
 
     img = Image.new("RGB", (width, height), "white")
     draw = ImageDraw.Draw(img)
-    font = _load_font(15)
-    font_bold = _load_font(16, bold=True)
-    font_title = _load_font(22, bold=True)
+    font = _load_font(15 * SCALE)
+    font_bold = _load_font(16 * SCALE, bold=True)
+    font_title = _load_font(22 * SCALE, bold=True)
 
     from_label = LABELS.get(from_code, from_code).splitlines()[0]
     to_label = LABELS.get(to_code, to_code).splitlines()[0]
-    draw.text((margin, 20), f"Sơ đồ đường đi: {from_label} → {to_label}", fill="black", font=font_title)
+    # Dùng "->" (ASCII thuần) thay vì ký tự "→" — Noto Sans (font đóng gói
+    # trong repo) không có glyph mũi tên này, sẽ hiện ô vuông tofu bị lỗi.
+    draw.text((margin, 20 * SCALE), f"Sơ đồ đường đi: {from_label} -> {to_label}", fill="black", font=font_title)
 
     for a, b in EDGES:
-        draw.line([to_px(a), to_px(b)], fill="#cccccc", width=3)
+        draw.line([to_px(a), to_px(b)], fill="#cccccc", width=3 * SCALE)
     for a, b in zip(path_nodes, path_nodes[1:]):
-        draw.line([to_px(a), to_px(b)], fill="#1a73e8", width=7)
+        draw.line([to_px(a), to_px(b)], fill="#1a73e8", width=7 * SCALE)
 
-    box_w, box_h = 96, 48
+    box_w, box_h = 96 * SCALE, 48 * SCALE
     for code in POSITIONS:
         px, py = to_px(code)
         is_start, is_end = code == from_code, code == to_code
@@ -192,7 +218,7 @@ def render_route_image(from_code: str, to_code: str) -> Path:
             fill, outline, text_color = "#f1f3f4", "#9aa0a6", "black"
 
         rect = [px - box_w / 2, py - box_h / 2, px + box_w / 2, py + box_h / 2]
-        draw.rounded_rectangle(rect, radius=8, fill=fill, outline=outline, width=2)
+        draw.rounded_rectangle(rect, radius=8 * SCALE, fill=fill, outline=outline, width=2 * SCALE)
 
         label = LABELS.get(code, code)
         f = font_bold if (is_start or is_end or on_path) else font
@@ -201,14 +227,18 @@ def render_route_image(from_code: str, to_code: str) -> Path:
         draw.multiline_text((px - tw / 2, py - th / 2), label, fill=text_color, font=f, align="center")
 
     # Vẽ mũi tên chỉ Bắc bằng hình học (không phụ thuộc glyph Unicode của font)
-    compass_x, compass_y = width - 70, height - margin + 35
+    compass_x, compass_y = width - 70 * SCALE, height - margin + 35 * SCALE
     draw.polygon(
-        [(compass_x, compass_y - 14), (compass_x - 7, compass_y + 6), (compass_x + 7, compass_y + 6)],
+        [
+            (compass_x, compass_y - 14 * SCALE),
+            (compass_x - 7 * SCALE, compass_y + 6 * SCALE),
+            (compass_x + 7 * SCALE, compass_y + 6 * SCALE),
+        ],
         fill="black",
     )
     label = "Bắc"
     bbox = draw.textbbox((0, 0), label, font=font_bold)
-    draw.text((compass_x - (bbox[2] - bbox[0]) / 2, compass_y + 10), label, fill="black", font=font_bold)
+    draw.text((compass_x - (bbox[2] - bbox[0]) / 2, compass_y + 10 * SCALE), label, fill="black", font=font_bold)
 
     out_path = OUT_DIR / f"route_{from_code}_{to_code}.png"
     img.save(out_path)
