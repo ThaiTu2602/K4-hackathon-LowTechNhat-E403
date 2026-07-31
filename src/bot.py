@@ -1,5 +1,6 @@
 import os
 import discord
+import asyncio
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -78,7 +79,8 @@ async def on_message(message):
         # BƯỚC DUY NHẤT: giao hết cho AGENT THẬT xử lý (tự hiểu ý định, tự
         # gọi đúng tool trong tools.py, tự trả lời) — thay cho luồng cũ
         # classify_intent() -> if/elif rời rạc.
-        reply_text = run_agent(
+        reply_text = await asyncio.to_thread(
+            run_agent,
             user_id=message.author.id,
             user_name=message.author.display_name,
             user_text=user_text,
