@@ -333,6 +333,41 @@ def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
         ok, msg = match_manager.cancel_match(match_id, user_id)
         return {"status": "cancelled" if ok else "failed", "message": msg}
 
+    # ---------- TOOL 9: Thông báo thiếu slot ----------
+    def notify_missing_slot(match_id: str, missing_count: int) -> dict:
+        """
+        Phát thông báo kêu gọi thêm thành viên vào một trận đang thiếu người.
+
+        Dùng khi user nhắn đại loại: "kèo ... bị thiếu X người, nhắc mọi người",
+        "cần thêm người cho trận ...", "ai rảnh đến bấm vào luôn"...
+        Tool trả về nội dung thông báo đã soạn sẵn để bot gửi ra kênh Discord.
+        Không cần xác nhận thêm vì đây là hành động đọc chỉ / phát
+        thông báo, không tháy đổi dữ liệu trận.
+
+        Args:
+            match_id: ID trận cần không người.
+            missing_count: số người còn thiếu.
+        """
+        matches = match_manager.get_active_matches()
+        match = next((m for m in matches if m["id"] == match_id), None)
+        if not match:
+            return {"status": "not_found", "message": f"Không tìm thấy trận với ID {match_id}."}
+
+        sport = match.get("sport", "thể thao")
+        time_ = match.get("time", "chưa rõ giờ")
+        location = match.get("location", "chưa rõ địa điểm")
+        announcement = (
+            f"🚨 **Cần thêm người!** Kèo **{sport}** lúc **{time_}** tại **{location}** "
+            f"còn thiếu **{missing_count} người**. Ai rảnh nhảy vào ngay! "
+            f"(ID trận: `{match_id}`)"
+        )
+        return {
+            "status": "announced",
+            "announcement": announcement,
+            "match_id": match_id,
+            "missing_count": missing_count,
+        }
+
     return [
         search_knowledge_base,
         list_open_matches,
@@ -342,4 +377,5 @@ def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
         leave_match,
         update_match,
         cancel_match,
+        notify_missing_slot,
     ]

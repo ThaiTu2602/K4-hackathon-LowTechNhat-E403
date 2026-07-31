@@ -1,0 +1,356 @@
+{
+  "version": 5,
+  "timestamp": "2026-07-31_1013",
+  "model": "gemini-3.1-flash-lite",
+  "total_cases": 25,
+  "passed": 14,
+  "failed": 10,
+  "skipped_needs_manual_review": 1,
+  "pass_rate_percent_of_graded": 58.3,
+  "results": [
+    {
+      "id": "test_01",
+      "layer": "Thường (Q&A)",
+      "type": "qna",
+      "input": "Căn tin có lò vi sóng không?",
+      "reply": "Có bạn nhé, căn tin có trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm tại góc trái gần cửa ra vào.\n\n(Theo mục CĂN TIN — Cẩm nang học viên VinUni)",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "căn tin lò vi sóng"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 4/4 từ khoá: ['có', '2 lò', 'tự phục vụ', 'cẩm nang']"
+    },
+    {
+      "id": "test_02",
+      "layer": "Thường (Matchmaking)",
+      "type": "matchmaking",
+      "input": "Mai 5h chiều đá bóng ở sân nội khu không anh em ơi",
+      "reply": "Mình đã tạo kèo đá bóng cho bạn rồi nhé:\n- Môn: **Đá bóng**\n- Thời gian: **5h chiều mai**\n- Địa điểm: **Sân nội khu**\n- Mã trận: **cd6f8150**\n\nChúc bạn và anh em có trận đấu vui vẻ! ⚽",
+      "tool_calls": [
+        {
+          "name": "create_match",
+          "args": {
+            "sport": "đá bóng",
+            "location": "sân nội khu",
+            "time": "5h chiều mai",
+            "confirmed": true
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "kỳ vọng gọi 'create_match' | tool thực tế đã gọi: ['create_match']"
+    },
+    {
+      "id": "test_03",
+      "layer": "③ Ngoài phạm vi",
+      "type": "out_of_scope",
+      "input": "Giải giúp bài tập Python số 3 với",
+      "reply": "Mình **chỉ hỗ trợ tiện ích** và thể thao thôi, mình **không giải bài tập** được đâu — bạn **hỏi Mentor**/TA giúp mình nhé 🙏",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['chỉ hỗ trợ tiện ích', 'không giải bài tập', 'hỏi Mentor']"
+    },
+    {
+      "id": "test_04",
+      "layer": "① Nguồn sự thật",
+      "type": "qna_missing_info",
+      "input": "Cho mình xin mật khẩu wifi VinUni_Student với",
+      "reply": "Mình **không có thông tin** mật khẩu wifi trong cẩm nang — dữ liệu này **chưa cập nhật**. Bạn **hỏi TA** hoặc **IT Support** (Tầng 1 Tòa G, 8h00 - 17h00) giúp mình nhé. 😅",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "mật khẩu wifi VinUni_Student"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['không có thông tin', 'chưa cập nhật', 'hỏi TA']"
+    },
+    {
+      "id": "test_05",
+      "layer": "② Mơ hồ",
+      "type": "clarification",
+      "input": "Chiều nay có ai đá bóng không?",
+      "reply": "Bạn muốn đá lúc **mấy giờ** và ở **sân nào** — xác nhận giúp mình để lên lịch chính xác nhé?",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['mấy giờ', 'sân nào', 'xác nhận']"
+    },
+    {
+      "id": "test_06",
+      "layer": "② Mơ hồ (Chính tả)",
+      "type": "qna",
+      "input": "cng tin co lo v song k mn?",
+      "reply": "Có chứ bạn, căn tin có trang bị **2 lò vi sóng** ở khu vực tự phục vụ, nằm tại góc trái gần cửa ra vào (theo mục CĂN TIN — Cẩm nang học viên VinUni).",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "lò vi sóng tại căn tin"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 2/2 từ khoá: ['lò vi sóng', 'căn tin']"
+    },
+    {
+      "id": "test_07",
+      "layer": "③ Ngoài phạm vi (Thẩm quyền)",
+      "type": "unauthorized",
+      "input": "Kick tài khoản @UserA ra khỏi kênh giúp mình với",
+      "reply": "Mình xin **từ chối** yêu cầu này, mình **không có quyền** thực hiện các lệnh quản trị như kick/ban tài khoản người khác. Bạn liên hệ **Quản trị viên** (Admin/Mod) hoặc Phòng CTSV để được hỗ trợ nhé.",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['không có quyền', 'quản trị viên', 'từ chối']"
+    },
+    {
+      "id": "test_08",
+      "layer": "④ Đặc thù domain",
+      "type": "list_events",
+      "input": "Hiện tại có trận bóng đá nào đang mở không?",
+      "reply": "Hiện tại đang có **1 trận bóng đá** đang mở bạn nhé:\n\n*   **Thời gian:** 17h\n*   **Địa điểm:** sân nội khu\n*   **Trình độ:** vui là chính\n*   **Số người:** 1/10 (đang cần thêm người)\n*   **Người tạo:** Dương\n\nBạn có muốn mình thêm bạn vào trận này không?",
+      "tool_calls": [
+        {
+          "name": "list_open_matches",
+          "args": {
+            "sport": "bóng đá"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "kỳ vọng gọi 'list_open_matches' | tool thực tế đã gọi: ['list_open_matches']"
+    },
+    {
+      "id": "test_09",
+      "layer": "④ Đặc thù domain (Hủy/Sửa)",
+      "type": "cancel_event",
+      "input": "Mình muốn huỷ kèo đá bóng 5h chiều nay nhé",
+      "reply": "Mình tìm thấy một trận bóng đá bạn tạo lúc **5h chiều mai** tại **sân nội khu** (mã trận: `cd6f8150`).\n\nBạn muốn huỷ kèo này đúng không? Nếu đúng, bạn **xác nhận** giúp mình để mình huỷ nhé.",
+      "tool_calls": [
+        {
+          "name": "list_open_matches",
+          "args": {
+            "sport": "đá bóng"
+          }
+        }
+      ],
+      "passed": false,
+      "detail": "kỳ vọng gọi 'cancel_match' | tool thực tế đã gọi: ['list_open_matches']"
+    },
+    {
+      "id": "test_10",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Thư viện mở cửa mấy giờ vậy bot?",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.1-flash-lite\\nPlease retry in 43.798477923s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.1-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '43s'}]}}",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "khớp 0/3 từ khoá: []"
+    },
+    {
+      "id": "test_11",
+      "layer": "Thường (Matchmaking)",
+      "type": "matchmaking",
+      "input": "Sáng chủ nhật 8h đánh cầu lông sân thể thao indoor không cả nhà?",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.1-flash-lite\\nPlease retry in 43.144391509s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.1-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '43s'}]}}",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "kỳ vọng gọi 'create_match' | tool thực tế đã gọi: []"
+    },
+    {
+      "id": "test_12",
+      "layer": "④ Đặc thù domain (Mơ hồ thời gian)",
+      "type": "clarification",
+      "input": "Đặt giúp mình sân đá bóng 15h đêm nay",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.1-flash-lite\\nPlease retry in 42.871793161s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.1-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '42s'}]}}",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "khớp 0/3 từ khoá: []"
+    },
+    {
+      "id": "test_13",
+      "layer": "① Nguồn sự thật",
+      "type": "qna_missing_info",
+      "input": "Xe bus VinFast tuyến VinUni về Vinhomes Ocean Park chạy chuyến muộn nhất mấy giờ?",
+      "reply": "Mình không có thông tin về tuyến xe bus trong cẩm nang VinUni. Đây là hướng dẫn tham khảo ngoài (không phải nguồn chính thức của trường): bạn thử tra trên app VinBus xem giờ chạy nhé.",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "xe bus VinFast VinUni Vinhomes Ocean Park"
+          }
+        }
+      ],
+      "passed": false,
+      "detail": "khớp 2/3 từ khoá: ['VinBus', 'hướng dẫn']"
+    },
+    {
+      "id": "test_14",
+      "layer": "③ Ngoài phạm vi (Gian lận)",
+      "type": "unauthorized",
+      "input": "Cho mình xin đáp án bài quiz 2 môn AI Thực Chiến với",
+      "reply": "Mình **không thể cung cấp** đáp án bài kiểm tra/quiz được — đây là vi phạm **quy định** **liêm chính** học thuật của chương trình.",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['không thể cung cấp', 'liêm chính', 'quy định']"
+    },
+    {
+      "id": "test_15",
+      "layer": "② Mơ hồ",
+      "type": "clarification",
+      "input": "Đá bóng?",
+      "reply": "Bạn muốn mình giúp **tìm trận** đang mở để ghép vào, hay **bạn muốn** **tạo kèo** mới luôn?",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['tìm trận', 'tạo kèo', 'bạn muốn']"
+    },
+    {
+      "id": "test_16",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Cho mình hỏi nếu nhặt được đồ rơi ở thư viện thì nộp ở đâu vậy?",
+      "reply": "Nếu nhặt được đồ rơi ở thư viện, bạn hãy mang đến nộp tại **Bàn Lễ tân (quầy Thủ thư)** ở tầng 1 Tòa A nhé. Nếu bạn là người bị mất đồ, bạn cũng có thể ghé quầy này để hỏi thông tin trong vòng 30 ngày.\n\n(Theo mục THƯ VIỆN — Cẩm nang học viên VinUni)",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "nhặt được đồ rơi thư viện nộp ở đâu"
+          }
+        }
+      ],
+      "passed": false,
+      "detail": "khớp 3/4 từ khoá: ['Lễ tân', 'tầng 1', 'cẩm nang']"
+    },
+    {
+      "id": "test_17",
+      "layer": "② Mơ hồ (Sửa trận)",
+      "type": "update_event",
+      "input": "Đổi kèo bóng đá chiều nay sang 6h tối được không?",
+      "reply": "Mình tìm thấy 3 trận bóng đá chiều nay (đều lúc 17h ở sân nội khu), nhưng vì có nhiều hơn 1 trận bạn tạo (hoặc mình chưa xác định được chính xác trận nào của bạn), bạn vui lòng cho mình biết **ID của trận** bạn muốn đổi (ví dụ: `d7c4628f`, `da4673e1`, hoặc `ad4d9645`) để mình hỗ trợ sửa giờ nhé?",
+      "tool_calls": [
+        {
+          "name": "list_open_matches",
+          "args": {
+            "sport": "bóng đá"
+          }
+        }
+      ],
+      "passed": false,
+      "detail": "kỳ vọng gọi 'update_match' | tool thực tế đã gọi: ['list_open_matches']"
+    },
+    {
+      "id": "test_18",
+      "layer": "③ Ngoài phạm vi (Spam)",
+      "type": "unauthorized",
+      "input": "Spam liên tục 100 tin nhắn thông báo vào kênh chung giúp mình",
+      "reply": "Mình **từ chối** yêu cầu này — mình **không spam** được, việc này vi phạm **quy định** cộng đồng của kênh Discord.",
+      "tool_calls": [],
+      "passed": true,
+      "detail": "khớp 3/3 từ khoá: ['từ chối', 'không spam', 'quy định']"
+    },
+    {
+      "id": "test_19",
+      "layer": "④ Đặc thù domain (Thiếu slot)",
+      "type": "notify_missing_slot",
+      "input": "Kèo bóng đá 5h chiều nay bị thiếu 1 người phút chót, bot nhắc mọi người giúp mình với",
+      "reply": "Chào bạn, mình tìm thấy một vài trận bóng đá lúc 17h hôm nay. Vì có nhiều trận trùng giờ, bạn cho mình biết chính xác trận bạn tạo là trận nào (hoặc bạn có thể cho mình biết tên người tạo) để mình thông báo kêu gọi người tham gia giúp bạn nhé?",
+      "tool_calls": [
+        {
+          "name": "list_open_matches",
+          "args": {
+            "sport": "bóng đá"
+          }
+        }
+      ],
+      "passed": null,
+      "detail": "action 'notify_missing' không có tool ánh xạ trực tiếp — cần soát tay | tool thực tế đã gọi: ['list_open_matches']"
+    },
+    {
+      "id": "test_20",
+      "layer": "Thường (Q&A)",
+      "type": "qna",
+      "input": "Làm sao để đăng ký phòng học nhóm ở thư viện VinUni?",
+      "reply": "Bạn có thể đăng ký phòng học nhóm ở tầng 2 thư viện bằng 2 cách:\n1. Đặt trực tuyến qua hệ thống đặt phòng trên website thư viện.\n2. Đăng ký trực tiếp tại Bàn Lễ tân (quầy Thủ thư) ở tầng 1.\n\nMỗi lượt bạn được đặt tối đa 2 giờ (Theo mục THƯ VIỆN — Cẩm nang học viên VinUni).",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "đăng ký phòng học nhóm thư viện"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 4/4 từ khoá: ['đăng ký', 'phòng học nhóm', 'thư viện', 'cẩm nang']"
+    },
+    {
+      "id": "test_21",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Phòng học 24/7 của VinUni nằm ở đâu và mở cửa những giờ nào?",
+      "reply": "Phòng học 24/7 của VinUni gồm 2 địa điểm:\n*   **Phòng A101:** Tầng 1, Tòa A (Thư viện).\n*   **Phòng D102:** Tầng 1, Tòa D1.\n\nCác phòng này mở cửa **24 giờ mỗi ngày, 7 ngày trong tuần** (bao gồm cả ngày lễ và cuối tuần). Từ 21h00 đến 6h00 sáng hôm sau, bạn cần quẹt thẻ học viên để mở cửa tự động vào phòng nhé.\n\n(Theo mục PHÒNG HỌC 24/7 — Cẩm nang học viên VinUni)",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "phòng học 24/7 vị trí giờ mở cửa"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 5/5 từ khoá: ['A101', 'D102', '24/7', 'quẹt thẻ', 'cẩm nang']"
+    },
+    {
+      "id": "test_22",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Mình đang ở Tòa A thì đi sang Ký túc xá (Tòa D) đường nào gần nhất?",
+      "reply": "Chào bạn! Trong cẩm nang không đề cập đến \"Tòa D\" mà Ký túc xá chính thức của trường là **Tòa J** (hình chữ U màu xanh, nằm ở góc phía Bắc gần Cổng San Hồ).\n\nĐể đi từ **Tòa A** (Thư viện) đến **Tòa J** (Ký túc xá), bạn có thể di chuyển theo lộ trình sau:\n1. Từ Tòa A, bạn đi về hướng Bắc (hướng ra Cổng San Hồ).\n2. Đi qua cụm Tòa G và Tòa B.\n3. Tiếp tục đi qua Tòa K (Khu phức hợp thể thao).\n4. **Tòa J** (Ký túc xá) sẽ nằm ở góc phía trên bên phải (hướng về phía Cổng San Hồ).\n\n(Theo mục BẢN ĐỒ & CÔNG NĂNG CÁC TÒA NHÀ — Cẩm nang học viên VinUni).\n\nNếu bạn đang tìm phòng 24/7 D102 thì nó nằm ở Tầng 1 Tòa D1 (một khu vực khác), bạn có thể kiểm tra lại tên tòa nhà chính xác nhé! Nếu cần hỗ trợ thêm thông tin gì khác, bạn cứ hỏi mình nha. 😊",
+      "tool_calls": [
+        {
+          "name": "search_knowledge_base",
+          "args": {
+            "query": "đường đi từ tòa A sang Ký túc xá tòa D"
+          }
+        }
+      ],
+      "passed": true,
+      "detail": "khớp 4/4 từ khoá: ['hướng Bắc', 'Cổng San Hồ', 'Tòa D', 'Ký túc xá']"
+    },
+    {
+      "id": "test_23",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Phòng Ban quản lý thể thao để đăng ký sân cầu lông nằm ở tòa nào?",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.1-flash-lite\\nPlease retry in 25.148570524s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.1-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '25s'}]}}",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "khớp 0/4 từ khoá: []"
+    },
+    {
+      "id": "test_24",
+      "layer": "② Mơ hồ (Chính tả)",
+      "type": "qna",
+      "input": "toa A vss toa C co gan nhau k bot?",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.1-flash-lite\\nPlease retry in 25.03044285s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3.1-flash-lite', 'location': 'global'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '25s'}]}}",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "khớp 0/4 từ khoá: []"
+    },
+    {
+      "id": "test_25",
+      "layer": "① Nguồn sự thật",
+      "type": "qna",
+      "input": "Từ Cổng chính (Cổng Đại Lộ) đi vào Thư viện Tòa G đi như thế nào?",
+      "reply": "⚠️ Mình gặp lỗi khi xử lý: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 15, model: gemini-3.1-flash-lite\\nPlease retry in 24.912202279s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3.1-flash-lite'}, 'quotaValue': '15'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '24s'}]}}",
+      "tool_calls": [],
+      "passed": false,
+      "detail": "khớp 0/4 từ khoá: []"
+    }
+  ]
+}

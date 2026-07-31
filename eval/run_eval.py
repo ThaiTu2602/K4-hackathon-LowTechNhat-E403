@@ -18,6 +18,7 @@ Cách chạy:
 import json
 import re
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -36,6 +37,7 @@ EXPECTED_TOOL_FOR_ACTION = {
     "update": "update_match",
     "cancel": "cancel_match",
     "list_events": "list_open_matches",
+    "notify_missing_slot": "notify_missing_slot",
     # "notify_missing": không có tool riêng — đây là side-effect của
     # leave_match khi 1 trận đang đủ người rớt xuống thiếu. Case này được
     # đánh dấu SKIP (cần soát tay) thay vì auto pass/fail — xem README bên
@@ -133,6 +135,10 @@ def run() -> None:
         )
         status = "PASS" if passed is True else ("FAIL" if passed is False else "SKIP")
         print(f"[{case['id']:8}] {status:4} — {detail}")
+
+        if i in (7, 15):
+            print(f"Đã chạy {i + 1} test, tạm dừng 60 giây để tránh lỗi quá giới hạn (Rate Limit)...")
+            time.sleep(60)
 
     total = len(results)
     passed_n = sum(1 for r in results if r["passed"] is True)

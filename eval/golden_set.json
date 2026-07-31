@@ -97,15 +97,15 @@
   },
   {
     "id": "test_09",
-    "layer": "④ Đặc thù domain (Hủy/Sửa)",
-    "type": "cancel_event",
+    "layer": "② Mơ hồ (Hủy trận)",
+    "type": "clarification",
     "input": "Mình muốn huỷ kèo đá bóng 5h chiều nay nhé",
-    "expected_behavior": "Nhận diện intent hủy kèo bóng đá 17h hôm nay và thông báo hủy thành công",
-    "expected_intent": {
-      "action": "cancel",
-      "sport": "bóng đá",
-      "time": "17:00 hôm nay"
-    }
+    "expected_behavior": "Bot tìm trận rồi hỏi lại user xác nhận trước khi huỷ thật, không tự huỷ luôn",
+    "expected_output_keywords": [
+      "xác nhận",
+      "huỷ",
+      "bóng đá"
+    ]
   },
   {
     "id": "test_10",
@@ -196,14 +196,14 @@
   {
     "id": "test_17",
     "layer": "② Mơ hồ (Sửa trận)",
-    "type": "update_event",
+    "type": "clarification",
     "input": "Đổi kèo bóng đá chiều nay sang 6h tối được không?",
-    "expected_behavior": "Nhận diện intent điều chỉnh thời gian trận đấu đã tạo sang 18:00",
-    "expected_intent": {
-      "action": "update",
-      "sport": "bóng đá",
-      "new_time": "18:00 chiều nay"
-    }
+    "expected_behavior": "Bot tìm trận rồi hỏi lại user xác nhận trước khi sửa thật, không tự đổi luôn",
+    "expected_output_keywords": [
+      "xác nhận",
+      "đổi",
+      "18h"
+    ]
   },
   {
     "id": "test_18",
@@ -224,7 +224,7 @@
     "input": "Kèo bóng đá 5h chiều nay bị thiếu 1 người phút chót, bot nhắc mọi người giúp mình với",
     "expected_behavior": "Bot phát thông báo kêu gọi thêm 1 slot cho trận đấu 17h hôm nay",
     "expected_intent": {
-      "action": "notify_missing",
+      "action": "notify_missing_slot",
       "sport": "bóng đá",
       "time": "17:00 hôm nay",
       "missing_count": 1
