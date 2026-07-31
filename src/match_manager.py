@@ -74,9 +74,21 @@ class MatchManager:
         self._save()
 
     # ----- TẠO TRẬN -----
-    def create_match(self, sport: str, time: str, location: str, creator_name: str, creator_id: int) -> str:
+    def create_match(
+        self,
+        sport: str,
+        time: str,
+        location: str,
+        creator_name: str,
+        creator_id: int,
+        level: str = "chưa rõ",
+    ) -> str:
         """
         Tạo 1 trận mới. Trả về match_id (dùng để quản lý trận sau này).
+
+        `level` (trình độ: "vui là chính" / "trung bình" / "khá" / "chưa rõ")
+        là trường TÙY CHỌN, dùng để agent so khớp khi đề xuất trận phù hợp
+        (xem find_nearest_match trong tools.py). Không có thì mặc định "chưa rõ".
         """
         match_id = str(uuid.uuid4())[:8]  # ID ngắn gọn 8 ký tự
         target_players = DEFAULT_SLOTS.get(sport.lower(), 10)
@@ -85,15 +97,57 @@ class MatchManager:
             "sport": sport,
             "time": time,
             "location": location,
+            "level": level,
             "creator_name": creator_name,
             "creator_id": creator_id,
             "players": {creator_id: creator_name},  # Dict {user_id: user_name}
             "target_players": target_players,
             "created_at": datetime.now().strftime("%H:%M %d/%m"),
+            "created_at_iso": datetime.now().isoformat(),
             "message_id": None,  # Sẽ gán sau khi gửi embed lên Discord
         }
         self._save()
         return match_id
+
+    # ----- SỬA TRẬN (đổi giờ/sân/môn sau khi đã tạo) -----
+    def update_match(
+        self,
+        match_id: str,
+        user_id: int,
+        new_time: str = None,
+        new_location: str = None,
+        new_sport: str = None,
+    ) -> tuple[bool, str]:
+        """
+        Sửa thông tin trận đã tạo. Chỉ người tạo (creator_id) mới được sửa.
+        Dùng cho case "tạo trận bị sai giờ, muốn sửa ngay" (spec.md §5) và
+        luồng Correction ở §6 (user nhắn "đổi sang 6h đi").
+        Chỉ truyền tham số nào cần đổi, để None nếu giữ nguyên.
+        """
+        if match_id not in self.active_matches:
+            return False, "❌ Không tìm thấy trận này."
+
+        match = self.active_matches[match_id]
+        if user_id != match["creator_id"]:
+            return False, "⛔ Chỉ người tạo trận mới có quyền sửa!"
+
+        changes = []
+        if new_time and new_time != match["time"]:
+            changes.append(f"🕐 {match['time']} → **{new_time}**")
+            match["time"] = new_time
+        if new_location and new_location != match["location"]:
+            changes.append(f"📍 {match['location']} → **{new_location}**")
+            match["location"] = new_location
+        if new_sport and new_sport != match["sport"]:
+            changes.append(f"🏅 {match['sport']} → **{new_sport}**")
+            match["sport"] = new_sport
+            match["target_players"] = DEFAULT_SLOTS.get(new_sport.lower(), match["target_players"])
+
+        if not changes:
+            return False, "⚠️ Không có gì để đổi cả — bạn muốn sửa giờ, sân hay môn?"
+
+        self._save()
+        return True, "✏️ Đã cập nhật trận:\n" + "\n".join(changes)
 
     # ----- THAM GIA TRẬN -----
     def join_match(self, match_id: str, user_id: int, user_name: str) -> tuple[bool, str]:
@@ -101,7 +155,7 @@ class MatchManager:
         Cho user tham gia trận. Trả về (success, message).
         """
         if match_id not in self.active_matches:
-            return False, "❌ Không tìm thấy trận này. Gõ `!xem-tran` để xem danh sách trận đang mở."
+            return False, "❌ Không tìm thấy trận này. Gõ `/xem-tran` để xem danh sách trận đang mở."
 
         match = self.active_matches[match_id]
         if user_id in match["players"]:
@@ -118,7 +172,12 @@ class MatchManager:
 
     # ----- RỜI TRẬN -----
     def leave_match(self, match_id: str, user_id: int) -> tuple[bool, str]:
-        """Cho user rời trận."""
+        """
+        Cho user rời trận.
+        Nếu trận VỪA ĐỦ NGƯỜI rồi rớt xuống thiếu (có người huỷ phút chót),
+        message trả về sẽ chủ động kêu gọi thêm người — spec.md §5 case "Đã
+        đủ người nhưng có người huỷ phút chót".
+        """
         if match_id not in self.active_matches:
             return False, "❌ Không tìm thấy trận này."
 
@@ -128,11 +187,19 @@ class MatchManager:
 
         # Không cho người tạo rời (phải huỷ trận)
         if user_id == match["creator_id"]:
-            return False, "⚠️ Bạn là người tạo trận, hãy dùng `!huy-tran` để huỷ."
+            return False, "⚠️ Bạn là người tạo trận, hãy dùng `/huy-tran` để huỷ."
 
+        was_full = len(match["players"]) >= match["target_players"]
         del match["players"][user_id]
         self._save()
-        return True, f"👋 Đã rời trận. Còn {len(match['players'])}/{match['target_players']} người."
+
+        current, target = len(match["players"]), match["target_players"]
+        if was_full:
+            return True, (
+                f"👋 Đã rời trận. Trận này vừa **đủ người xong lại thiếu** "
+                f"({current}/{target}) — ai vào thay 1 chỗ không? 🙋"
+            )
+        return True, f"👋 Đã rời trận. Còn {current}/{target} người."
 
     # ----- HUỶ TRẬN -----
     def cancel_match(self, match_id: str, user_id: int) -> tuple[bool, str]:
@@ -219,7 +286,7 @@ class MatchManager:
         )
         embed.add_field(name="Tiến trình", value=f"{bar} {current}/{target}", inline=False)
 
-        embed.set_footer(text=f"ID trận: {match_id} • Gõ !join {match_id} để tham gia")
+        embed.set_footer(text=f"ID trận: {match_id} • Gõ /join id_trận:{match_id} để tham gia")
         return embed
 
     def create_list_embed(self) -> discord.Embed:
@@ -228,7 +295,7 @@ class MatchManager:
         if not matches:
             embed = discord.Embed(
                 title="📋 Danh sách trận đang mở",
-                description="Hiện tại chưa có trận nào đang mở.\nGõ `!mo-tran` hoặc nhắn rủ thể thao để mở trận mới!",
+                description="Hiện tại chưa có trận nào đang mở.\nGõ `/mo-tran` hoặc nhắn rủ thể thao (tag mình) để mở trận mới!",
                 color=discord.Color.greyple(),
             )
             return embed
@@ -251,8 +318,8 @@ class MatchManager:
 
             embed.add_field(
                 name=f"{sport_emoji} {m['sport']} — {m['time']}",
-                value=f"📍 {m['location']} | 👥 {current}/{target}\n`!join {m['id']}`",
+                value=f"📍 {m['location']} | 👥 {current}/{target}\n`/join id_trận:{m['id']}`",
                 inline=False,
             )
-        embed.set_footer(text="Gõ !join <ID trận> để tham gia")
+        embed.set_footer(text="Gõ /join id_trận:<ID trận> để tham gia")
         return embed

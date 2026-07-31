@@ -1,4 +1,5 @@
 discord.py==2.3.2
+audioop-lts; python_version >= "3.13"  # discord.py cần audioop, bị Python 3.13 gỡ khỏi thư viện chuẩn
 python-dotenv==1.0.1
-google-generativeai==0.5.2
+google-genai==2.16.0
 openai==1.28.1

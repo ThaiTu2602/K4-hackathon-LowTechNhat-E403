@@ -2,8 +2,8 @@
 - Căn tin VinUni nằm tại Tòa E (Khu Hlab Căn tin & Hospitality Lab).
 - Mở cửa từ 7h00 đến 19h00 hàng ngày (cả Thứ 7 và Chủ nhật).
 - Căn tin trang bị 2 lò vi sóng ở khu vực tự phục vụ, nằm ở góc trái gần cửa ra vào.
-- Giá cơm trưa dao động từ 25.000đ đến 45.000đ.
-- Có thể mua vé tháng với giá 800.000đ với 50 lần ăn, có thể chia sẻ cho bạn khác sử dụng.
+- Giá cơm trưa dao động từ 40.000đ đến 80.000đ.
+- Có thể mua vé tháng với giá 880.000đ với 22 lần ăn, có thể chia sẻ cho bạn khác sử dụng.
 - Căn tin có bán nước đóng chai, cà phê, trà sữa, cookies và cocktails.
 - Khu vực ăn uống có wifi miễn phí, mật khẩu hỏi tại quầy thu ngân.
 
@@ -14,6 +14,8 @@
 - Cần dùng thẻ từ (thẻ học viên VinUni) để quẹt cửa tự động. Nếu thẻ lỗi, liên hệ quầy IT Support ở Tầng 1 Tòa G (8h00 - 17h00).
 - Thư viện gồm 2 tầng không gian học tập + Vườn treo Babylon trên mái.
 - Mượn sách tối đa 5 cuốn trong 14 ngày.
+- Đồ thất lạc nhặt được hoặc bị mất trong thư viện: nộp/hỏi tại Bàn Lễ tân (quầy Thủ thư) ở tầng 1, trong vòng 30 ngày.
+- Đăng ký phòng học nhóm (tầng 2): đặt qua hệ thống đặt phòng trực tuyến trên website thư viện, hoặc trực tiếp tại Bàn Lễ tân, tối đa 2 giờ mỗi lượt.
 - Vườn treo Babylon (trên mái Tòa A): Rộng 500 m², sức chứa 150 người, là không gian đọc sách thư giãn kết hợp tổ chức tiệc/sự kiện ngoài trời.
 - Không gian tiêu biểu Tòa A: Phòng A101 (sức chứa 100 người, có khu học 24/7), Phòng A117 (30 người, trang bị màn hình cảm ứng).
 
@@ -74,6 +76,7 @@ Chi tiết công năng & không gian tiêu biểu từng tòa:
   + Từ Tòa A (Thư viện) đi Tòa C (Giảng dạy) hoặc Tòa E (Đa năng/Căn tin): Từ Tòa A đi xuống phía Nam, rẽ sang phía Tây là Tòa C, rẽ sang phía Đông là Tòa E.
   + Từ Bãi giữ xe đi các Tòa học thuật: Bãi giữ xe nằm ở phía Tây, ngay sát bên cạnh Tòa H và Tòa C.
   + Từ Cụm Học thuật đi Khu thể thao (Tòa L, K): Đi về phía Bắc hướng Cổng San Hồ. Tòa L (Sân bóng) nằm bên trái, Tòa K (Bể bơi/Gym/Indoor) nằm cạnh Tòa L.
+  + Tòa A và Tòa C nằm ở cụm trung tâm: Tòa A nằm ở giữa, Tòa C nằm ngay phía Tây-Nam của Tòa A, đi bộ giữa 2 tòa chỉ mất 2-3 phút.
 
 # === SƠ ĐỒ ĐỒ THỊ DI CHUYỂN GIỮA CÁC TÒA (MERMAID GRAPH) ===
 ```mermaid
