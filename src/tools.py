@@ -6,6 +6,7 @@
 from datetime import datetime
 from pathlib import Path
 
+import campus_map  # toạ độ + BFS + vẽ ảnh PNG sơ đồ đường đi thật
 from router import extract_hour  # dùng lại logic đoán giờ tường minh trong câu
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -273,6 +274,11 @@ def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
         trường nào, PHẢI để confirmed=False và hỏi lại user trường còn thiếu
         — không được tự đoán giờ/sân/môn.
 
+        Có thể trả về status="conflict" nếu sân này đã có trận khác giờ quá
+        gần (dưới 2 tiếng) — đây là quy tắc thật (tránh tranh sân), chuyển
+        nguyên lý do trong "message" cho user, đừng thử gọi lại tool với
+        cùng giờ/sân, hỏi user muốn đổi giờ hay đổi sân.
+
         Args:
             sport: môn thể thao. Cứ gõ đúng theo lời user nói (đá banh/đá
                    bóng/bóng đá đều được) — tool tự chuẩn hoá về 1 tên gốc.
@@ -295,12 +301,14 @@ def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
             }
 
         sport_canon = normalize_sport(sport)
-        match_id = match_manager.create_match(
+        ok, result = match_manager.create_match(
             sport=sport_canon, time=time, location=location, creator_name=user_name, creator_id=user_id, level=level
         )
+        if not ok:
+            return {"status": "conflict", "message": result}
         return {
             "status": "created",
-            "match_id": match_id,
+            "match_id": result,
             "sport": sport_canon,
             "time": time,
             "location": location,
@@ -468,6 +476,41 @@ def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
                 mine.append({**m, "role": "host" if user_id == m["creator_id"] else "player"})
         return {"count": len(mine), "matches": mine}
 
+    # ---------- TOOL 12: Vẽ ẢNH THẬT sơ đồ chỉ đường giữa 2 địa điểm ----------
+    def draw_route_diagram(from_place: str, to_place: str) -> dict:
+        """
+        Vẽ 1 ẢNH PNG sơ đồ chỉ đường (bản đồ campus, có đánh dấu điểm đi/đến
+        + đường đi ngắn nhất) giữa 2 toà/địa điểm trong khuôn viên.
+
+        BẮT BUỘC gọi tool này khi user yêu cầu "vẽ biểu đồ/sơ đồ/bản đồ/hình
+        minh hoạ đường đi" — KHÔNG được tự vẽ bằng cú pháp Mermaid hay bất kỳ
+        dạng text/code nào khác để giả làm hình ảnh, vì Discord KHÔNG render
+        được Mermaid/ASCII art thành hình, chỉ hiện nguyên văn chữ trông như
+        bot bị lỗi. Ảnh thật sẽ được đính kèm tự động vào tin nhắn trả lời
+        sau khi tool này chạy xong — bạn chỉ cần xác nhận bằng lời rằng đã
+        gửi kèm sơ đồ, không cần mô tả lại từng bước đường đi bằng chữ nữa.
+
+        Args:
+            from_place: tên toà/địa điểm bắt đầu, theo đúng lời user gõ (vd
+                        "tòa A", "thư viện", "cổng chính").
+            to_place: tên toà/địa điểm muốn đến.
+        """
+        from_code = campus_map.resolve_building(from_place)
+        to_code = campus_map.resolve_building(to_place)
+        missing = [n for n, v in [("điểm đi", from_code), ("điểm đến", to_code)] if not v]
+        if missing:
+            return {
+                "status": "not_found",
+                "message": f"Không nhận diện được {', '.join(missing)} trong khuôn viên — hỏi lại user tên toà/địa điểm cụ thể hơn.",
+            }
+        image_path = campus_map.render_route_image(from_code, to_code)
+        return {
+            "status": "drawn",
+            "from": from_code,
+            "to": to_code,
+            "image_path": str(image_path),
+        }
+
     return [
         search_knowledge_base,
         list_open_matches,
@@ -480,4 +523,5 @@ def build_agent_tools(match_manager, user_id: int, user_name: str) -> list:
         cancel_match,
         notify_missing_slot,
         get_current_time,
+        draw_route_diagram,
     ]

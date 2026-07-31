@@ -12,6 +12,10 @@ from router import resolve_match_datetime
 # tránh vỡ kèo phút chót (yêu cầu vận hành thật của nhóm).
 LEAVE_LOCK_MINUTES_BEFORE_START = 60
 
+# 2 trận đặt CÙNG 1 địa điểm (sân) phải cách nhau tối thiểu bao nhiêu giờ —
+# tránh 2 nhóm tranh sân thật ngoài đời cùng lúc (yêu cầu vận hành thật).
+MIN_GAP_HOURS_SAME_LOCATION = 2
+
 # ============================================================
 # FILE: match_manager.py
 # MỤC ĐÍCH: Quản lý trạng thái các trận đấu thể thao (gom nhóm).
@@ -87,14 +91,38 @@ class MatchManager:
         creator_name: str,
         creator_id: int,
         level: str = "chưa rõ",
-    ) -> str:
+    ) -> tuple[bool, str]:
         """
-        Tạo 1 trận mới. Trả về match_id (dùng để quản lý trận sau này).
+        Tạo 1 trận mới. Trả về (True, match_id) nếu tạo thành công.
 
         `level` (trình độ: "vui là chính" / "trung bình" / "khá" / "chưa rõ")
         là trường TÙY CHỌN, dùng để agent so khớp khi đề xuất trận phù hợp
         (xem find_nearest_match trong tools.py). Không có thì mặc định "chưa rõ".
+
+        KIỂM TRA TRÙNG SÂN: nếu địa điểm (`location`) trùng với 1 trận đang
+        mở khác VÀ giờ chơi cách nhau dưới MIN_GAP_HOURS_SAME_LOCATION giờ,
+        trả về (False, lý do) thay vì tạo — tránh 2 nhóm tranh cùng 1 sân
+        thật ngoài đời. Chỉ kiểm tra được khi đoán ra giờ tường minh cho CẢ
+        2 trận (mới + đang có) qua resolve_match_datetime — nếu 1 trong 2
+        không đoán được giờ rõ ràng, bỏ qua kiểm tra này (không suy diễn bừa).
         """
+        new_dt = resolve_match_datetime(time)
+        if new_dt is not None:
+            loc_key = location.strip().lower()
+            for other in self.active_matches.values():
+                if other["location"].strip().lower() != loc_key:
+                    continue
+                other_dt = resolve_match_datetime(other["time"])
+                if other_dt is None:
+                    continue
+                gap_hours = abs((new_dt - other_dt).total_seconds()) / 3600
+                if gap_hours < MIN_GAP_HOURS_SAME_LOCATION:
+                    return False, (
+                        f"⛔ Sân **{location}** đã có trận **{other['sport']}** lúc **{other['time']}** rồi — "
+                        f"cần cách nhau tối thiểu {MIN_GAP_HOURS_SAME_LOCATION} tiếng mới đặt được cùng sân này. "
+                        f"Bạn đổi giờ khác hoặc chọn sân khác giúp mình nhé."
+                    )
+
         match_id = str(uuid.uuid4())[:8]  # ID ngắn gọn 8 ký tự
         target_players = DEFAULT_SLOTS.get(sport.lower(), 10)  # sức chứa TỐI ĐA
         min_players = get_min_players(sport)  # sức chứa TỐI THIỂU để "chơi được"
@@ -114,7 +142,7 @@ class MatchManager:
             "message_id": None,  # Sẽ gán sau khi gửi embed lên Discord
         }
         self._save()
-        return match_id
+        return True, match_id
 
     # ----- SỬA TRẬN (đổi giờ/sân/môn sau khi đã tạo) -----
     def update_match(
